@@ -33,7 +33,7 @@
     --mono:ui-monospace,"SF Mono","SFMono-Regular","Cascadia Code",Menlo,Consolas,monospace;
     --sans:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
     --serif:"Spectral",Georgia,"Iowan Old Style","Times New Roman",serif;
-    --measure:70ch;
+    --measure:100%;
     /* z-index scale */
     --z-topbar:40; --z-backdrop:45; --z-drawer:50; --z-skip:60; --z-tooltip:70;
   }
@@ -70,7 +70,7 @@
   @media(min-width:901px){.backdrop{display:none!important}}
 
   /* layout: reading column left, contents rail right (no markup move) */
-  .layout{display:grid;grid-template-columns:minmax(0,1fr) 248px;gap:clamp(28px,4vw,64px);max-width:1320px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 248px;gap:clamp(28px,4vw,64px);max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
   .content{grid-column:1;grid-row:1;padding:clamp(40px,6vh,76px) 0 96px;min-width:0}
   .sidebar{grid-column:2;grid-row:1;position:sticky;top:0;align-self:start;max-height:100dvh;overflow-y:auto;scrollbar-width:thin;scrollbar-gutter:stable;padding:clamp(28px,4vh,52px) 4px 32px 20px;border-left:1px solid var(--border)}
   @media(max-width:900px){
@@ -103,7 +103,7 @@
   /* hero */
   .hero{margin-bottom:clamp(40px,6vh,64px)}
   .hero h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(2.6rem,6vw,4.4rem);line-height:1.02;letter-spacing:-.025em;text-wrap:balance}
-  .hero p{margin:20px 0 0;font-style:italic;font-size:clamp(1.1rem,1.8vw,1.35rem);line-height:1.5;color:var(--text-dim);max-width:54ch;text-wrap:pretty}
+  .hero p{margin:20px 0 0;font-style:italic;font-size:clamp(1.1rem,1.8vw,1.35rem);line-height:1.5;color:var(--text-dim);max-width:72ch;text-wrap:pretty}
   .hero p strong,.hero p em{font-style:normal;color:var(--text);font-weight:500}
   .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
   .pill{font-family:var(--mono);font-size:.72rem;letter-spacing:-.01em;background:transparent;border:1px solid var(--border);padding:4px 11px;border-radius:5px;color:var(--text-dim)}
@@ -118,7 +118,7 @@
   ul,ol{padding-left:1.4em}
   li::marker{color:var(--text-dim)}
   strong{font-weight:600}
-  .lead{color:var(--text-dim);font-size:1.06rem;max-width:64ch}
+  .lead{color:var(--text-dim);font-size:1.06rem;max-width:80ch}
 
   /* code */
   pre{position:relative;background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px;overflow-x:auto;scrollbar-width:thin;margin:20px 0;font-size:.92rem}
