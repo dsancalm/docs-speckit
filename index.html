@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guía Spec-Kit + Claude Code · Spec-Driven Development</title>
+<meta name="description" content="Guía detallada para usar GitHub Spec-Kit con Claude Code: instalación, flujo completo, extensiones (DocGuard, Sync, Verify, Drift) y medición objetiva de calidad." />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Guía Spec-Kit + Claude Code · Spec-Driven Development" />
+<meta property="og:description" content="Flujo end-to-end de Spec-Driven Development con GitHub Spec-Kit y Claude Code: instalación, comandos core, extensiones y medición objetiva de calidad." />
+<meta property="og:image" content="https://picsum.photos/seed/speckit-claude/1200/630" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1117'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%233fb950'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* dark editorial (default) */
+    --bg:oklch(0.18 0.012 235);
+    --bg-elev:oklch(0.215 0.013 235);
+    --bg-elev2:oklch(0.255 0.014 235);
+    --border:oklch(0.33 0.012 235);
+    --rule:oklch(0.42 0.014 235);
+    --text:oklch(0.915 0.01 230);
+    --text-dim:oklch(0.70 0.014 232);
+    --accent:oklch(0.80 0.15 156);
+    --accent-strong:oklch(0.74 0.16 156);
+    --accent2:oklch(0.78 0.10 235);
+    --warn:oklch(0.80 0.12 75);
+    --danger:oklch(0.72 0.16 25);
+    --code-bg:oklch(0.155 0.012 235);
+    --radius:8px;
+    --mono:ui-monospace,"SF Mono","SFMono-Regular","Cascadia Code",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    --serif:"Spectral",Georgia,"Iowan Old Style","Times New Roman",serif;
+    --measure:70ch;
+    /* z-index scale */
+    --z-topbar:40; --z-backdrop:45; --z-drawer:50; --z-skip:60;
+  }
+  [data-theme="light"]{
+    --bg:oklch(0.99 0.004 235);
+    --bg-elev:oklch(0.975 0.005 235);
+    --bg-elev2:oklch(0.945 0.006 235);
+    --border:oklch(0.88 0.006 235);
+    --rule:oklch(0.80 0.008 235);
+    --text:oklch(0.255 0.016 240);
+    --text-dim:oklch(0.44 0.014 240);
+    --accent:oklch(0.50 0.13 156);
+    --accent-strong:oklch(0.46 0.14 156);
+    --accent2:oklch(0.48 0.13 248);
+    --warn:oklch(0.52 0.11 70);
+    --danger:oklch(0.52 0.18 27);
+    --code-bg:oklch(0.965 0.006 235);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.72;font-size:17px;font-feature-settings:"liga" 1,"onum" 1;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:var(--accent);text-decoration:none;text-underline-offset:3px;text-decoration-thickness:from-font}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;font-feature-settings:normal}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+  button{font-family:var(--sans)}
+
+  /* a11y helpers */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .skip-link{position:fixed;top:8px;left:8px;z-index:var(--z-skip);background:var(--accent-strong);color:oklch(0.99 0 0);font-family:var(--sans);padding:8px 14px;border-radius:6px;font-size:.9rem;transform:translateY(-150%);transition:transform .2s}
+  .skip-link:focus{transform:translateY(0);text-decoration:none}
+  .backdrop{display:none;position:fixed;inset:0;background:oklch(0.1 0.01 235 / .6);z-index:var(--z-backdrop)}
+  .backdrop.show{display:block}
+  @media(min-width:901px){.backdrop{display:none!important}}
+
+  /* layout: reading column left, contents rail right (no markup move) */
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 248px;gap:clamp(28px,4vw,64px);max-width:1160px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
+  .content{grid-column:1;grid-row:1;padding:clamp(40px,6vh,76px) 0 96px;min-width:0}
+  .sidebar{grid-column:2;grid-row:1;position:sticky;top:0;align-self:start;height:100dvh;overflow-y:auto;padding:clamp(40px,6vh,76px) 4px 48px 20px;border-left:1px solid var(--border)}
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr;padding:0}
+    .content{grid-column:1;padding:76px 20px 64px}
+    .sidebar{grid-column:1;position:fixed;top:0;left:-320px;width:288px;height:100dvh;z-index:var(--z-drawer);background:var(--bg-elev);border-left:none;border-right:1px solid var(--border);padding:24px 20px;transition:left .28s cubic-bezier(.22,1,.36,1);box-shadow:0 0 60px oklch(0.1 0.01 235 / .5)}
+    .sidebar.open{left:0}
+    .menu-toggle{display:flex!important}
+  }
+
+  /* contents rail */
+  .brand{font-family:var(--sans);font-weight:600;font-size:.98rem;letter-spacing:-.01em;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in oklab,var(--accent) 18%,transparent)}
+  .brand-sub{color:var(--text-dim);font-size:.8rem;line-height:1.5;margin-bottom:26px;max-width:30ch}
+  nav{font-family:var(--sans)}
+  nav a{display:block;color:var(--text-dim);padding:5px 10px;border-radius:6px;font-size:.84rem;line-height:1.45;transition:color .15s,background .15s}
+  nav a:hover{background:var(--bg-elev);color:var(--text);text-decoration:none}
+  nav a.active{color:var(--accent);background:color-mix(in oklab,var(--accent) 12%,transparent);font-weight:500}
+  nav .group{margin-top:22px;font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);padding:0 10px 6px;font-weight:600}
+  nav .group:first-of-type{margin-top:6px}
+
+  /* topbar mobile */
+  .topbar{position:fixed;top:0;left:0;right:0;height:54px;background:color-mix(in oklab,var(--bg) 86%,transparent);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border);display:none;align-items:center;gap:12px;padding:0 16px;z-index:var(--z-topbar)}
+  @media(max-width:900px){.topbar{display:flex}}
+  .topbar .brand{margin-bottom:0}
+  .menu-toggle{display:none;background:none;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 11px;cursor:pointer;font-size:1rem;line-height:1;transition:background .2s,transform .1s}
+  .menu-toggle:hover{background:var(--bg-elev2)}
+  .menu-toggle:active{transform:scale(.95)}
+
+  /* hero */
+  .hero{margin-bottom:clamp(40px,6vh,64px)}
+  .hero h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(2.6rem,6vw,4.4rem);line-height:1.02;letter-spacing:-.025em;text-wrap:balance}
+  .hero p{margin:20px 0 0;font-style:italic;font-size:clamp(1.1rem,1.8vw,1.35rem);line-height:1.5;color:var(--text-dim);max-width:54ch;text-wrap:pretty}
+  .hero p strong,.hero p em{font-style:normal;color:var(--text);font-weight:500}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .pill{font-family:var(--mono);font-size:.72rem;letter-spacing:-.01em;background:transparent;border:1px solid var(--border);padding:4px 11px;border-radius:5px;color:var(--text-dim)}
+
+  /* headings + prose rhythm */
+  h2{margin:clamp(56px,8vh,80px) 0 0;padding-bottom:14px;border-bottom:1px solid var(--rule);font-family:var(--serif);font-size:clamp(1.55rem,2.6vw,2rem);font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:balance;scroll-margin-top:72px}
+  h3{margin:40px 0 0;font-family:var(--serif);font-size:1.28rem;font-weight:600;letter-spacing:-.012em;line-height:1.25;text-wrap:balance;scroll-margin-top:72px}
+  h2 + *,h3 + *{margin-top:14px}
+  p,li{color:var(--text);max-width:var(--measure)}
+  p{margin:18px 0;text-wrap:pretty}
+  li{margin:7px 0}
+  ul,ol{padding-left:1.4em}
+  li::marker{color:var(--text-dim)}
+  strong{font-weight:600}
+  .lead{color:var(--text-dim);font-size:1.06rem;max-width:64ch}
+
+  /* code */
+  pre{position:relative;background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px;overflow-x:auto;margin:20px 0;font-size:.92rem}
+  pre code{color:var(--text);white-space:pre;line-height:1.6}
+  :not(pre) > code{background:var(--bg-elev2);border:1px solid var(--border);border-radius:4px;padding:.08em .38em}
+  .tok-cmd{color:var(--accent)}
+  .tok-flag{color:var(--accent2)}
+  .tok-cmt{color:var(--text-dim);font-style:italic}
+  .copy-btn{position:absolute;top:8px;right:8px;font-family:var(--sans);background:var(--bg-elev);border:1px solid var(--border);color:var(--text-dim);font-size:.72rem;padding:4px 10px;border-radius:5px;cursor:pointer;opacity:0;transition:opacity .15s,color .15s,border-color .15s,transform .1s}
+  pre:hover .copy-btn,pre:focus-within .copy-btn{opacity:1}
+  .copy-btn:hover{color:var(--text);border-color:var(--rule)}
+  .copy-btn:active{transform:scale(.95)}
+  .copy-btn.done{color:var(--accent);border-color:var(--accent);opacity:1}
+  .copy-btn.err{color:var(--danger);border-color:var(--danger);opacity:1}
+
+  /* tables: editorial horizontal rules, no grid */
+  table{border-collapse:collapse;width:100%;margin:22px 0;font-family:var(--sans);font-size:.88rem;font-variant-numeric:tabular-nums}
+  th,td{padding:11px 16px 11px 0;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+  th{font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);border-bottom:2px solid var(--rule)}
+  tbody tr:last-child td{border-bottom:none}
+  td code{color:var(--accent);background:none;border:none;padding:0}
+
+  /* callouts: full thin border + tint, no side stripe */
+  .callout{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:22px 0;background:var(--bg-elev);max-width:var(--measure)}
+  .callout p{margin:0;max-width:none}
+  .callout .tag{font-family:var(--sans);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px}
+  .callout.tip{background:color-mix(in oklab,var(--accent) 7%,var(--bg-elev));border-color:color-mix(in oklab,var(--accent) 30%,var(--border))} .callout.tip .tag{color:var(--accent)}
+  .callout.warn{background:color-mix(in oklab,var(--warn) 8%,var(--bg-elev));border-color:color-mix(in oklab,var(--warn) 32%,var(--border))} .callout.warn .tag{color:var(--warn)}
+  .callout.danger{background:color-mix(in oklab,var(--danger) 8%,var(--bg-elev));border-color:color-mix(in oklab,var(--danger) 32%,var(--border))} .callout.danger .tag{color:var(--danger)}
+  .callout.info{background:color-mix(in oklab,var(--accent2) 8%,var(--bg-elev));border-color:color-mix(in oklab,var(--accent2) 32%,var(--border))} .callout.info .tag{color:var(--accent2)}
+
+  /* step flow: real ordered sequence -> numbered markers earned */
+  .flow{counter-reset:step;margin:24px 0;padding:0;list-style:none}
+  .flow>li{position:relative;border:1px solid var(--border);border-radius:var(--radius);padding:20px 20px 20px 64px;margin:0 0 14px;background:var(--bg-elev);max-width:none}
+  .flow>li::before{counter-increment:step;content:counter(step);position:absolute;left:18px;top:18px;width:32px;height:32px;border-radius:50%;background:color-mix(in oklab,var(--accent) 16%,transparent);border:1px solid color-mix(in oklab,var(--accent) 45%,transparent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:500;font-size:.92rem}
+  .flow h4{margin:0 0 8px;font-family:var(--serif);font-size:1.1rem;font-weight:600;letter-spacing:-.01em}
+  .flow p{max-width:none}
+  .flow .verify{font-family:var(--sans);color:var(--accent);font-size:.82rem;margin-top:10px;max-width:none}
+  .flow .verify::before{content:"verify  ";font-weight:600;font-variant:small-caps;letter-spacing:.04em;opacity:.85}
+
+  /* theme btn */
+  .theme-btn{font-family:var(--sans);background:none;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;cursor:pointer;font-size:.82rem;margin-top:24px;width:100%;text-align:left;transition:background .2s,border-color .2s,transform .1s}
+  .theme-btn:hover{background:var(--bg-elev);border-color:var(--rule)}
+  .theme-btn:active{transform:scale(.98)}
+
+  footer{margin-top:80px;padding-top:28px;border-top:1px solid var(--rule);color:var(--text-dim);font-size:.88rem}
+  footer p{max-width:var(--measure)}
+  .badge{font-family:var(--mono);display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:4px;background:var(--bg-elev2);border:1px solid var(--border);color:var(--text-dim);margin-left:6px;vertical-align:middle;letter-spacing:-.01em}
+  .score{display:inline-flex;align-items:baseline;gap:4px;font-weight:600}
+  .score .num{font-family:var(--serif);font-size:1.5rem;color:var(--accent)}
+  hr{border:none;border-top:1px solid var(--rule);margin:40px 0;max-width:var(--measure)}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<div class="topbar">
+  <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <span class="brand"><span class="dot"></span> Spec-Kit + Claude Code</span>
+</div>
+
+<div class="backdrop" id="backdrop" hidden></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="dot"></span> Spec-Kit</div>
+    <div class="brand-sub">Guía Spec-Driven Development con Claude Code</div>
+    <nav id="toc">
+      <a href="#que-es">1 · Qué es</a>
+      <a href="#instalacion">2 · Instalación</a>
+      <a href="#init">3 · Inicializar proyecto</a>
+      <a href="#estructura">4 · Estructura generada</a>
+      <div class="group">★ Empezar aquí</div>
+      <a href="#quickstart">5 · Quick Start (flujo completo)</a>
+      <a href="#ejecucion">5b · Cómo se ejecutan las tasks</a>
+      <div class="group">Referencia</div>
+      <a href="#comandos">6 · Comandos core</a>
+      <a href="#reglas">7 · Reglas por paso</a>
+      <div class="group">Avanzado</div>
+      <a href="#extensiones">8 · Extensiones</a>
+      <a href="#radu">9 · Lección de Radu</a>
+      <a href="#medicion">10 · Medición (JS/TS)</a>
+      <a href="#presets">11 · Presets y bundles</a>
+      <a href="#tips">12 · Tips y gotchas</a>
+      <a href="#fuentes">Fuentes</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" aria-pressed="false">🌗 Cambiar tema</button>
+  </aside>
+
+  <main class="content" id="main" tabindex="-1">
+    <div class="hero">
+      <h1>Spec-Kit + Claude Code</h1>
+      <p class="lead">Desarrollo guiado por especificaciones (<em>Spec-Driven Development</em>): defines el <strong>qué</strong> y el <strong>porqué</strong>, y Claude Code genera el <strong>cómo</strong> a partir de specs ejecutables, en pasos refinados — no en un solo prompt.</p>
+      <div class="pills">
+        <span class="pill">GitHub Spec-Kit</span>
+        <span class="pill">Claude Code</span>
+        <span class="pill">JS / TS</span>
+        <span class="pill">+ Extensiones</span>
+        <span class="pill">Medición objetiva</span>
+      </div>
+    </div>
+
+    <!-- 1 -->
+    <h2 id="que-es">1 · Qué es Spec-Kit</h2>
+    <p><strong>Spec-Kit</strong> es un toolkit open-source de GitHub para <em>Spec-Driven Development (SDD)</em>. Invierte el flujo tradicional: en vez de tratar la spec como andamio desechable, la convierte en <strong>especificación ejecutable</strong>. El agente de IA (Claude Code) implementa directamente a partir de specs detalladas.</p>
+    <p>Filosofía central: <strong>intent-driven development</strong>. La especificación define el <em>qué</em> antes que el <em>cómo</em>, con <strong>refinamiento en varios pasos</strong> en lugar de prompts de un solo tiro. Objetivo: dejar de "vibe-codear" cada pieza y obtener outcomes predecibles.</p>
+
+    <!-- 2 -->
+    <h2 id="instalacion">2 · Instalación</h2>
+    <p>Requisitos: <strong>Python 3.11+</strong>, <strong>Git</strong> y <strong>uv</strong> (o pipx). El CLI se llama <code>specify</code>.</p>
+    <pre><code><span class="tok-cmt"># Instalar el CLI specify (usa el último release de GitHub)</span>
+<span class="tok-cmd">uv</span> tool install specify-cli <span class="tok-flag">--from</span> git+https://github.com/github/spec-kit.git</code></pre>
+    <div class="callout info"><span class="tag">Versión</span><p>Vas a usar el <strong>último release de GitHub</strong>. Sin tag, el comando de arriba instala HEAD del repo. Para fijar una versión concreta añade <code>@vX.Y.Z</code> con un tag de la <a href="https://github.com/github/spec-kit/releases" target="_blank" rel="noopener">página de Releases</a>. Tras instalar, confirma con <code>specify self check</code>.</p></div>
+    <h3>Auto-gestión del CLI</h3>
+    <pre><code><span class="tok-cmd">specify</span> self check                 <span class="tok-cmt"># ¿hay updates?</span>
+<span class="tok-cmd">specify</span> self upgrade               <span class="tok-cmt"># actualizar al último</span>
+<span class="tok-cmd">specify</span> self upgrade <span class="tok-flag">--tag</span> vX.Y.Z   <span class="tok-cmt"># fijar versión concreta</span></code></pre>
+
+    <!-- 3 -->
+    <h2 id="init">3 · Inicializar el proyecto para Claude Code</h2>
+    <pre><code><span class="tok-cmt"># Proyecto nuevo</span>
+<span class="tok-cmd">specify</span> init mi-proyecto <span class="tok-flag">--integration</span> claude
+<span class="tok-cmd">cd</span> mi-proyecto
+
+<span class="tok-cmt"># O inicializar en el directorio actual (--here equivale a usar '.')</span>
+<span class="tok-cmd">specify</span> init . <span class="tok-flag">--integration</span> claude <span class="tok-flag">--force</span></code></pre>
+    <div class="callout warn"><span class="tag">Flag correcto (verificado en specify 0.11.8)</span><p>El flag para Claude Code es <code>--integration claude</code> (no <code>--ai</code>). En sesiones no interactivas, sin flag, <strong>el CLI usa Copilot por defecto</strong> — así que para Claude debes pasarlo explícito. Si Claude Code no está en el PATH, añade <code>--ignore-agent-tools</code> para saltar la comprobación. <code>init</code> es <strong>offline</strong>: los templates van empaquetados en el CLI, así que coinciden con tu versión instalada.</p></div>
+    <p>Esto instala los comandos como <strong>skills</strong> en <code>.claude/skills/</code> (p. ej. <code>speckit-constitution</code>) y crea el andamiaje en <code>.specify/</code>.</p>
+    <div class="callout info"><span class="tag">Nombres de comando: guion, no punto</span><p>Con la integración <strong>Claude Code</strong>, los comandos se invocan con guion: <code>/speckit-specify</code>, <code>/speckit-plan</code>, etc. La forma con punto que ves en docs (<code>speckit.specify</code>) corresponde a otras integraciones (Copilot y similares). Esta guía usa la forma de Claude Code: <strong>guion</strong>.</p></div>
+
+    <!-- 4 -->
+    <h2 id="estructura">4 · Estructura generada</h2>
+    <p>Estructura real de <code>specify 0.11.8</code> con integración Claude:</p>
+    <pre><code>.claude/
+└── skills/                      <span class="tok-cmt"># comandos como skills de Claude Code</span>
+    ├── speckit-constitution/
+    ├── speckit-specify/
+    ├── speckit-clarify/
+    ├── speckit-plan/
+    ├── speckit-tasks/
+    ├── speckit-analyze/
+    ├── speckit-checklist/
+    ├── speckit-implement/
+    ├── speckit-converge/
+    └── speckit-taskstoissues/
+
+.specify/
+├── memory/                      <span class="tok-cmt"># constitution.md vive aquí</span>
+├── templates/                   <span class="tok-cmt"># spec/plan/tasks templates</span>
+├── scripts/bash/                <span class="tok-cmt"># check-prerequisites, create-new-feature, setup-plan</span>
+├── workflows/speckit/           <span class="tok-cmt"># automatización de workflows</span>
+├── extensions/                  <span class="tok-cmt"># extensiones instaladas (agent-context viene de fábrica)</span>
+├── integrations/
+├── extensions.yml
+├── integration.json
+└── init-options.json
+
+specs/
+└── [feature-name]/              <span class="tok-cmt"># se crea por feature al usar /speckit-specify</span>
+    ├── spec.md                  <span class="tok-cmt"># especificación funcional</span>
+    ├── plan.md                  <span class="tok-cmt"># plan de implementación</span>
+    ├── tasks.md                 <span class="tok-cmt"># desglose de tareas</span>
+    ├── data-model.md
+    ├── contracts/
+    └── research.md</code></pre>
+
+    <!-- 5 QUICK START -->
+    <h2 id="quickstart">5 · Quick Start — flujo de trabajo completo <span class="badge">★ lo esencial</span></h2>
+    <p class="lead">Ejemplo end-to-end: construir <strong>"LinkSnip"</strong>, un acortador de URLs con dashboard (stack JS/TS). Cada paso es un slash command dentro de Claude Code, <strong>en este orden</strong>. Incluye los pasos de extensiones (marcados <span class="badge">ext</span>) y la verificación de calidad.</p>
+
+    <div class="callout info"><span class="tag">Cómo leerlo</span><p>Todo lo que empieza por <code>/speckit-</code> se teclea como slash command dentro de Claude Code (no en la terminal). El texto entre comillas es el prompt que escribes junto al comando. Los bloques de terminal (<code>npm</code>, <code>npx</code>…) van en tu shell.</p></div>
+
+    <ol class="flow">
+      <li>
+        <h4><code>/speckit-constitution</code> — fija los principios</h4>
+        <p>Establece las reglas que Claude respetará en todo el proyecto. Cuanto más concretas y verificables, menos deriva. Ejemplo de constitution endurecida contra sobre-ingeniería:</p>
+        <pre><code><span class="tok-cmd">/speckit-constitution</span> Principios de ingeniería para LinkSnip. Son vinculantes
+y prevalecen sobre cualquier "mejor práctica" que añada complejidad no pedida.
+
+1. TEST-FIRST — Ninguna línea de implementación sin un test que falle antes.
+   Cobertura mínima 95%. Un test debe fallar si la lógica de negocio cambia.
+2. LIBRARY-FIRST — Cada feature nace como módulo independiente y testeable de
+   forma aislada antes de integrarse.
+3. TIPADO ESTRICTO — TypeScript en modo strict. Prohibido 'any' y los tipos
+   implícitos. Los contratos se modelan con tipos, no con comentarios.
+4. MANEJO DE ERRORES EXPLÍCITO — Todo camino de error se identifica y cubre
+   antes de codear el camino feliz. Nada de fallos silenciosos.
+5. SIMPLICIDAD SOBRE INGENIO — Prioriza legibilidad y baja complejidad
+   cognitiva. Si 50 líneas resuelven lo que escribiste en 200, reescribe.
+6. YAGNI — ANTI SOBRE-INGENIERÍA (regla dura):
+   - No implementes nada que no trace a un requisito explícito del PRD o a un
+     criterio de aceptación de la spec ACTUAL.
+   - Prohibido: abstracciones "por si acaso", capas de configuración no pedidas,
+     parámetros/opciones especulativos, patrones de diseño sin caso de uso
+     presente, dependencias para problemas que aún no existen, soporte para
+     escalas o casos que nadie ha solicitado.
+   - Construye la solución más simple que satisfaga el requisito de HOY. La
+     generalización llega con el SEGUNDO caso real, no antes.
+7. ZERO BREAKING CHANGES — Ningún cambio incompatible en la API pública sin
+   versionar.
+
+GOVERNANCE
+- Antes de implementar, el agente debe justificar cada componente, abstracción
+  o dependencia citando el requisito concreto que lo motiva. Si no puede, lo
+  elimina.
+- En /speckit-plan y /speckit-analyze, marca cualquier elemento que viole YAGNI
+  como [OVER-ENGINEERING] y propón la versión mínima.
+- Estos principios ganan a cualquier sugerencia que añada complejidad no
+  solicitada.</code></pre>
+        <p class="verify">constitution.md recoge estos principios y el agente los cita al planear.</p>
+      </li>
+      <li>
+        <h4><code>/speckit-specify</code> — define el QUÉ (sin stack)</h4>
+        <p>Requisitos y user stories. Describe necesidades de usuario, <strong>no</strong> tecnología.</p>
+        <pre><code><span class="tok-cmd">/speckit-specify</span> Una app web donde un usuario pega una URL larga y recibe un
+enlace corto. Puede ver una lista de sus enlaces con el conteo de clics. Los
+enlaces caducan a los 30 días. Página pública de redirección. Sin login en v1.</code></pre>
+        <p class="verify">spec.md describe qué/por qué; cero menciones de framework o base de datos.</p>
+      </li>
+      <li>
+        <h4><code>/speckit-clarify</code> — resuelve ambigüedades</h4>
+        <p>Antes de planear. Cada ambigüedad resuelta aquí = menos rework después. <strong>No lo saltes.</strong></p>
+        <pre><code><span class="tok-cmd">/speckit-clarify</span></code></pre>
+        <p class="verify">No quedan marcadores [NEEDS CLARIFICATION] sin resolver en spec.md.</p>
+      </li>
+      <li>
+        <h4><code>/speckit-plan</code> — el CÓMO (deja que la IA recomiende el stack)</h4>
+        <p>En vez de dictar tú la tecnología, pide a Claude que <strong>proponga las mejores opciones</strong> para los requisitos y restricciones, con trade-offs y una recomendación por defecto. Tú decides después.</p>
+        <pre><code><span class="tok-cmd">/speckit-plan</span> No fijes el stack todavía. Primero, basándote en la spec y la
+constitution, recomienda la mejor arquitectura para LinkSnip bajo estas
+restricciones: equipo pequeño con TypeScript, despliegue barato/serverless,
+lecturas de redirección de baja latencia, sin login en v1, mantenimiento simple.
+
+Para cada decisión técnica (lenguaje/runtime, framework web, persistencia,
+generación de IDs cortos, framework de tests, hosting) preséntame:
+  - 2-3 opciones viables con pros/contras en una frase
+  - tu recomendación marcada como [RECOMENDADO] y por qué gana aquí
+  - qué requisito concreto de la spec la justifica (si no traza, no la propongas)
+
+Optimiza para simplicidad y baja complejidad cognitiva (constitution §5 y §6).
+Marca cualquier alternativa que solo aporte flexibilidad especulativa como
+[OVER-ENGINEERING]. Espera mi OK a las recomendaciones antes de escribir plan.md.</code></pre>
+        <p class="verify">El plan ofrece opciones con trade-offs y un [RECOMENDADO] justificado por requisito; nada de stack impuesto a ciegas.</p>
+        <div class="callout tip" style="margin-top:10px"><span class="tag">Por qué así</span><p>Dejar que la IA proponga y justifique convierte el plan en una decisión informada, no en un capricho del prompt. El gate <code>[RECOMENDADO]</code> / <code>[OVER-ENGINEERING]</code> conecta con la GOVERNANCE de tu constitution: cada pieza debe trazar a un requisito. Si ya tienes el stack decidido, sáltate esto y díctalo — pero entonces pierdes la auditoría de alternativas.</p></div>
+      </li>
+      <li>
+        <h4><code>/speckit-tasks</code> — desglose ordenado</h4>
+        <p>Genera <code>tasks.md</code> en <strong>fases</strong> (Setup → Foundational → User Stories → Polish), con cada task etiquetada <code>[ID] [P] [US#]</code>. No es una lista plana — cada user story es un incremento entregable. Ver cómo se ejecuta en <a href="#ejecucion">§5b</a>.</p>
+        <pre><code><span class="tok-cmd">/speckit-tasks</span></code></pre>
+        <p class="verify">tasks.md organizado por fases/stories, con dependencias y marcas [P] correctas.</p>
+      </li>
+      <li>
+        <h4><code>/speckit-checklist</code> — checklist de calidad <span class="badge">opcional</span></h4>
+        <p>Genera un checklist de validación a medida contra la spec.</p>
+        <pre><code><span class="tok-cmd">/speckit-checklist</span> Genera un checklist de aceptación enfocado en seguridad
+de redirección, validación de URLs y caducidad de enlaces.</code></pre>
+        <p class="verify">Checklist cubre los riesgos clave de la feature.</p>
+      </li>
+      <li>
+        <h4><code>/speckit-analyze</code> — consistencia cruzada</h4>
+        <p>Valida que spec ↔ plan ↔ tasks no se contradigan antes de escribir código.</p>
+        <pre><code><span class="tok-cmd">/speckit-analyze</span></code></pre>
+        <p class="verify">Cero inconsistencias reportadas entre artefactos.</p>
+      </li>
+      <li>
+        <h4><code>/speckit-implement</code> — construir</h4>
+        <p><strong>Un solo comando ejecuta TODAS las tasks</strong> de <code>tasks.md</code>, fase a fase y en orden de dependencias (no relanzas por task). Detalle completo del modelo de ejecución en <a href="#ejecucion">§5b</a>. Instala antes el tooling local.</p>
+        <pre><code><span class="tok-cmt"># Terminal: tener Node/herramientas listas antes</span>
+<span class="tok-cmd">node</span> <span class="tok-flag">-v</span> <span class="tok-cmt"># confirma toolchain</span></code></pre>
+        <pre><code><span class="tok-cmt"># Todo de una pasada:</span>
+<span class="tok-cmd">/speckit-implement</span>
+
+<span class="tok-cmt"># …o incremental: scópalo a una user story y para en el checkpoint</span>
+<span class="tok-cmd">/speckit-implement</span> Solo la Phase 3 (User Story 1 / MVP); detente al terminarla.</code></pre>
+        <p class="verify">La app arranca, los tests pasan; devuelve a Claude cualquier error de runtime para que lo resuelva.</p>
+      </li>
+      <li>
+        <h4>Verificación post-implementación <span class="badge">ext · verify</span></h4>
+        <p>Comprueba que LinkSnip cumple la spec, no solo que compila. Tras instalar <code>verify</code> (§8.2), su hook <code>after_implement</code> te ofrece lanzarlo; o lo invocas a mano:</p>
+        <pre><code><span class="tok-cmd">/speckit-verify-run</span></code></pre>
+        <p class="verify">Implementación de LinkSnip validada contra <code>spec.md</code>; gaps listados (p. ej. "falta caducidad a 30 días").</p>
+      </li>
+      <li>
+        <h4>Detectar y reconciliar drift <span class="badge">ext · sync</span></h4>
+        <p>Mantén spec ↔ código alineados. <code>sync</code> cubre el bloque Sync <em>y</em> Drift de Radu. Flujo de 3 pasos con tu aprobación:</p>
+        <pre><code><span class="tok-cmd">/speckit-sync-analyze</span>    <span class="tok-cmt"># detecta drift (¿el código de redirección difiere de la spec?)</span>
+<span class="tok-cmd">/speckit-sync-propose</span>    <span class="tok-cmt"># propone cómo reconciliar spec↔código</span>
+<span class="tok-cmd">/speckit-sync-apply</span>      <span class="tok-cmt"># aplica lo que apruebes</span></code></pre>
+        <p class="verify"><code>sync-analyze</code> reporta cero drift, o lo reconcilias con propose→apply.</p>
+      </li>
+      <li>
+        <h4>Gate de documentación <span class="badge">ext · docguard</span></h4>
+        <p>Gate CDD y docs canónicas para dejar LinkSnip <em>delivery-ready</em>. Comandos reales tras instalar <code>docguard</code> (§8.2):</p>
+        <pre><code><span class="tok-cmd">/speckit-docguard-guard</span>     <span class="tok-cmt"># gate de validación de docs</span>
+<span class="tok-cmd">/speckit-docguard-score</span>     <span class="tok-cmt"># madurez CDD 0-100 + roadmap por ROI</span>
+<span class="tok-cmd">/speckit-docguard-generate</span>  <span class="tok-cmt"># docs canónicas desde el código (si faltan)</span></code></pre>
+        <p class="verify">Gate <code>guard</code> en verde; <code>score</code> CDD por encima de tu umbral.</p>
+      </li>
+      <li>
+        <h4>Medición objetiva — validar calidad real (ver §10)</h4>
+        <p>Cierra el loop midiendo el resultado, no fiándote del "parece que funciona".</p>
+        <pre><code><span class="tok-cmd">npx</span> vitest run <span class="tok-flag">--coverage</span>            <span class="tok-cmt"># cobertura ≥ 90% (meta de Radu)</span>
+<span class="tok-cmd">npx</span> eslint . <span class="tok-flag">--max-warnings</span> 0          <span class="tok-cmt"># calidad/estilo</span>
+<span class="tok-cmd">npx</span> plato <span class="tok-flag">-r</span> <span class="tok-flag">-d</span> reports src           <span class="tok-cmt"># mantenibilidad + complejidad</span></code></pre>
+        <p class="verify">Cobertura ≥90%, cero warnings de lint, índice de mantenibilidad aceptable.</p>
+      </li>
+      <li>
+        <h4><code>/speckit-taskstoissues</code> <span class="badge">opcional</span> — tracking en GitHub</h4>
+        <p>Convierte las tareas en issues de GitHub. Necesita la CLI <code>gh</code> instalada y autenticada.</p>
+        <pre><code><span class="tok-cmd">/speckit-taskstoissues</span></code></pre>
+        <p class="verify">Issues creados en el repo, uno por tarea.</p>
+      </li>
+    </ol>
+
+    <div class="callout tip"><span class="tag">Todos los comandos de este flujo están verificados</span><p>Los core (<code>/speckit-constitution</code> … <code>-taskstoissues</code>) y los de extensiones (<code>/speckit-verify-run</code>, <code>/speckit-sync-analyze</code>, <code>/speckit-docguard-guard</code>, …) se instalaron y comprobaron en <code>specify 0.11.8</code>. Los de extensiones aparecen tras instalarlas <strong>una vez</strong> (§8.1–8.2) y, gracias a sus hooks, Claude te los ofrece solo en el punto correcto del flujo. Lista los comandos exactos de cualquier extensión con <code>specify extension info &lt;id&gt;</code>.</p></div>
+    <div class="callout info"><span class="tag">Requisito previo de los pasos 9–11</span><p>Antes de usar Verify / Sync / DocGuard, instálalas una sola vez (catálogo aprobado + <code>add</code>). Receta completa copiable en <a href="#extensiones">§8.1 y §8.2</a>.</p></div>
+
+    <!-- 5b -->
+    <h2 id="ejecucion">5b · Cómo se ejecutan las tasks (¿una a una o todas?)</h2>
+    <p class="lead">Duda típica: "si mi app son 5 tasks, al lanzar la implementación, ¿se ejecutan las 5 o solo la primera?". Respuesta corta, verificada leyendo el skill <code>speckit-implement</code> de <code>specify 0.11.8</code>:</p>
+    <div class="callout tip"><span class="tag">Respuesta directa</span><p><strong>Un solo <code>/speckit-implement</code> ejecuta TODAS las tasks pendientes de <code>tasks.md</code> en una pasada.</strong> Con 5 tasks, las hace las 5 — no relanzas el comando por cada una. Internamente es un bucle automático: va fase a fase, en orden de dependencias, marca cada task como <code>[X]</code> al terminar y te reporta el progreso. No es "lanzar la 1ª y luego la 2ª a mano".</p></div>
+
+    <h3>1 · <code>tasks.md</code> no es una lista plana: está por fases y user stories</h3>
+    <p><code>/speckit-tasks</code> no genera "5 tareas sueltas". Las organiza en <strong>fases</strong>, y las de funcionalidad se agrupan por <strong>user story</strong> (cada story = un incremento entregable y testeable por separado):</p>
+    <pre><code>Phase 1: Setup              <span class="tok-cmt"># estructura, deps, config</span>
+Phase 2: Foundational       <span class="tok-cmt"># infra base — BLOQUEA todas las stories</span>
+Phase 3: User Story 1 (P1)  <span class="tok-cmt"># 🎯 MVP</span>
+Phase 4: User Story 2 (P2)
+Phase 5: User Story 3 (P3)
+Phase N: Polish             <span class="tok-cmt"># docs, perf, hardening</span></code></pre>
+    <p>Cada línea de task tiene el formato <code>[ID] [P?] [Story] descripción + ruta</code>:</p>
+    <pre><code>- [ ] T012 [P] [US1] Crear modelo Link en src/models/link.ts
+- [ ] T014    [US1] Implementar LinkService (depende de T012, T013)</code></pre>
+    <ul>
+      <li><code>T012</code> = ID secuencial.</li>
+      <li><code>[P]</code> = <strong>paralelizable</strong> (archivos distintos, sin dependencias). Sin <code>[P]</code> = secuencial.</li>
+      <li><code>[US1]</code> = a qué user story pertenece (trazabilidad).</li>
+      <li><code>[ ]</code> → <code>[X]</code> cuando se completa.</li>
+    </ul>
+
+    <h3>2 · Qué hace <code>/speckit-implement</code> por dentro</h3>
+    <table>
+      <thead><tr><th>Comportamiento</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>Alcance</td><td>Procesa <strong>toda</strong> la <code>tasks.md</code> en una invocación</td></tr>
+        <tr><td>Orden</td><td><strong>Fase a fase</strong>: completa una fase antes de pasar a la siguiente</td></tr>
+        <tr><td>Dependencias</td><td>Secuenciales en orden; las <code>[P]</code> pueden ir juntas; mismo archivo → secuencial</td></tr>
+        <tr><td>TDD</td><td>Si hay tests, los escribe y los hace fallar <em>antes</em> de implementar</td></tr>
+        <tr><td>Progreso</td><td>Reporta tras cada task y marca <code>[X]</code> en <code>tasks.md</code></td></tr>
+        <tr><td>Errores</td><td><strong>Se detiene</strong> si falla una task no-paralela; en <code>[P]</code> sigue con las OK y reporta las fallidas</td></tr>
+        <tr><td>Gate de checklists</td><td>Si hay checklists incompletos, <strong>PARA y te pregunta</strong> si continuar (sí/no)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3 · Cómo ir poco a poco (control fino / entrega incremental)</h3>
+    <p>Si no quieres soltar las 5 de golpe, tienes tres vías <strong>reales</strong>:</p>
+    <ol>
+      <li><strong>Filtro por argumento.</strong> El skill acepta una guía/filtro opcional (<code>argument-hint: "implementation guidance or task filter"</code>). Scópalo a una fase o story:
+        <pre><code><span class="tok-cmd">/speckit-implement</span> Implementa solo la Phase 3 (User Story 1 / MVP) y
+detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
+        Validas, y luego relanzas para la siguiente story.</li>
+      <li><strong>MVP-first por diseño.</strong> Como <code>tasks.md</code> ya separa stories independientes, el patrón recomendado es: Setup + Foundational → <strong>US1 → STOP &amp; validar → demo</strong> → US2 → … Cada story añade valor sin romper la anterior.</li>
+      <li><strong>Extensión <code>checkpoint</code>.</strong> Commitea incrementos durante la implementación para no acabar con un commit monolítico (ver §8).</li>
+    </ol>
+
+    <div class="callout info"><span class="tag">Modelo mental</span><p>1 feature → 1 <code>spec.md</code> → 1 <code>plan.md</code> → 1 <code>tasks.md</code> (N tasks en fases/stories). &nbsp; <strong>1 <code>/speckit-implement</code> = ejecuta todas las pendientes en orden</strong>, no una por comando. &nbsp; ¿Quieres granularidad? Pásale un filtro de fase/story y valida en cada checkpoint.</p></div>
+    <div class="callout warn"><span class="tag">Ojo: una feature a la vez</span><p>Este flujo es <strong>por feature</strong>. <code>/speckit-specify</code> crea una carpeta <code>specs/[feature]/</code> nueva (y su rama). Si tu app tiene varias features grandes, repites el ciclo specify→plan→tasks→implement por cada una, no metes todo en una sola spec gigante.</p></div>
+
+    <!-- 6 -->
+    <h2 id="comandos">6 · Referencia de comandos core</h2>
+    <table>
+      <thead><tr><th>Comando</th><th>Cuándo</th><th>Para qué</th></tr></thead>
+      <tbody>
+        <tr><td><code>/speckit-constitution</code></td><td>1º, una vez</td><td>Principios de gobierno: calidad, testing, UX, performance</td></tr>
+        <tr><td><code>/speckit-specify</code></td><td>Por feature</td><td>Requisitos + user stories. Solo el "qué", sin stack</td></tr>
+        <tr><td><code>/speckit-clarify</code></td><td>Antes de plan</td><td>Resolver áreas subespecificadas → menos rework</td></tr>
+        <tr><td><code>/speckit-plan</code></td><td>Tras clarify</td><td>Plan técnico + arquitectura (deja que la IA recomiende el stack y lo justifique)</td></tr>
+        <tr><td><code>/speckit-tasks</code></td><td>Tras plan</td><td>Desglose ordenado de tareas con dependencias</td></tr>
+        <tr><td><code>/speckit-analyze</code></td><td>Tras tasks</td><td>Validar consistencia spec ↔ plan ↔ tasks</td></tr>
+        <tr><td><code>/speckit-implement</code></td><td>Tras analyze</td><td>Ejecutar todas las tareas → construir la feature</td></tr>
+        <tr><td><code>/speckit-checklist</code></td><td>Cuando quieras</td><td>Checklists de calidad a medida</td></tr>
+        <tr><td><code>/speckit-converge</code></td><td>En código existente</td><td>Evalúa código vs spec/plan/tasks y lista lo que falta</td></tr>
+        <tr><td><code>/speckit-taskstoissues</code></td><td>Opcional</td><td>Convierte tareas en issues de GitHub (requiere <code>gh</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 7 -->
+    <h2 id="reglas">7 · Reglas por paso (lo que separa buen output de malo)</h2>
+    <h3>Constitution</h3>
+    <p>Define principios <strong>antes</strong> de todo. Luego pide explícitamente a Claude que <em>respete la constitution</em> al tomar decisiones de arquitectura. Es la capa que mantiene coherencia entre features.</p>
+    <h3>Specify</h3>
+    <p>Explícito en el <em>qué</em> y el <em>porqué</em>. Nada de "usar Postgres/React" aquí: si mezclas stack contaminas la spec y atas decisiones que aún no toca tomar.</p>
+    <h3>Clarify</h3>
+    <p>El paso con mayor ROI. Cada ambigüedad resuelta antes de planear evita rework caro aguas abajo. No lo saltes nunca.</p>
+    <h3>Plan</h3>
+    <p>Mejor patrón: pide a Claude que <strong>recomiende opciones con trade-offs</strong> y marque su preferida como <code>[RECOMENDADO]</code>, en vez de imponerle tú el stack a ciegas. Luego pídele que <strong>audite el plan en busca de sobre-ingeniería</strong> (<code>[OVER-ENGINEERING]</code>) y valida antes de implementar. Cada pieza debe trazar a un requisito.</p>
+    <h3>Implement</h3>
+    <p>Instala las herramientas locales antes (Node, npm, etc.). Tras correr: <strong>prueba la app y devuelve los errores de runtime a Claude</strong> para que los resuelva — es parte del loop, no un extra.</p>
+
+    <!-- 8 -->
+    <h2 id="extensiones">8 · Extensiones <span class="badge">recomendado</span></h2>
+    <p>Las extensiones añaden comandos y hooks sobre los core. <strong>Todo lo de esta sección está ejecutado y verificado en <code>specify 0.11.8</code></strong> — incluida la instalación real de las extensiones de Radu.</p>
+
+    <h3>8.1 · Habilitar instalación desde el catálogo community</h3>
+    <p>Hay dos catálogos por defecto: <code>default</code> (instalable) y <code>community</code> (<strong>solo descubrimiento</strong>). Las extensiones de Radu viven en <code>community</code>, así que un <code>add</code> directo falla con <em>"Not directly installable from 'community'"</em>. La forma limpia y reproducible es <strong>registrar el catálogo community como aprobado</strong> con <code>--install-allowed</code>:</p>
+    <pre><code><span class="tok-cmt"># Registra el catálogo community permitiendo instalación (prioridad alta = 1)</span>
+<span class="tok-cmd">specify</span> extension catalog add \
+  https://raw.githubusercontent.com/github/spec-kit/main/extensions/catalog.community.json \
+  <span class="tok-flag">--name</span> community-install <span class="tok-flag">--install-allowed</span> <span class="tok-flag">--priority</span> 1
+
+<span class="tok-cmt"># Verifica</span>
+<span class="tok-cmd">specify</span> extension catalog list      <span class="tok-cmt"># community-install → Install: install allowed</span></code></pre>
+    <p>Esto escribe <code>.specify/extension-catalogs.yml</code>:</p>
+    <pre><code>catalogs:
+- name: community-install
+  url: https://raw.githubusercontent.com/github/spec-kit/main/extensions/catalog.community.json
+  priority: 1
+  install_allowed: true
+  description: ''</code></pre>
+    <div class="callout warn"><span class="tag">Flags exactos</span><p><code>catalog add</code> exige <code>--name</code> y una URL <strong>HTTPS</strong>. El opuesto de <code>--install-allowed</code> es <code>--no-install-allowed</code> (por defecto). Alternativa sin tocar catálogos: instalar una extensión suelta con <code>specify extension add &lt;id&gt; --from &lt;zip-url-de-un-tag&gt;</code>.</p></div>
+
+    <h3>8.2 · Instalar las extensiones de Radu (ejecutado de verdad)</h3>
+    <p>Con el catálogo aprobado, estos <code>add</code> funcionan. Salida real abreviada (<code>✓ Extension installed successfully!</code>):</p>
+    <pre><code><span class="tok-cmd">specify</span> extension add docguard     <span class="tok-cmt"># DocGuard — CDD Enforcement v0.28.0 · 6 cmds, 3 hooks</span>
+<span class="tok-cmd">specify</span> extension add verify       <span class="tok-cmt"># Verify Extension v1.0.3 · 1 cmd, 1 hook</span>
+<span class="tok-cmd">specify</span> extension add sync         <span class="tok-cmt"># Spec Sync v0.1.0 · 5 cmds, 1 hook (cubre Sync + Drift)</span>
+
+<span class="tok-cmd">specify</span> extension list             <span class="tok-cmt"># confirma las 3 como Enabled</span></code></pre>
+    <div class="callout info"><span class="tag">Radu lista 4, el catálogo tiene 3 instalables</span><p>Las etiquetas de Radu (DocGuard, Verify, Sync, Drift) mapean a <strong>3 extensiones reales</strong>: <code>docguard</code>, <code>verify</code> y <code>sync</code>. <strong>"Drift" no es una extensión aparte</strong>: la detección de drift es justamente lo que hace <code>sync</code> (<code>sync.analyze</code>). Si quieres drift/arquitectura más estricto, añade además <code>architecture-guard</code> o <code>canon</code>. IDs verificados con <code>specify extension search</code>.</p></div>
+
+    <h3>8.3 · Comandos reales que añade cada extensión</h3>
+    <p>Al instalarse, registran <strong>skills</strong> en <code>.claude/skills/</code> con forma de guion (verificado en disco). Estos son los nombres exactos que tecleas en Claude Code:</p>
+    <table>
+      <thead><tr><th>Extensión</th><th>Comando (skill)</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="6"><code>docguard</code><br><span class="badge">DocGuard</span></td><td><code>/speckit-docguard-guard</code></td><td>Gate de validación de docs (CDD)</td></tr>
+        <tr><td><code>/speckit-docguard-score</code></td><td>Score de madurez CDD 0–100 + roadmap por ROI</td></tr>
+        <tr><td><code>/speckit-docguard-review</code></td><td>Consistencia semántica entre documentos (read-only)</td></tr>
+        <tr><td><code>/speckit-docguard-diagnose</code></td><td>Diagnostica issues + plan de remediación para la IA</td></tr>
+        <tr><td><code>/speckit-docguard-fix</code></td><td>Aplica las correcciones del plan</td></tr>
+        <tr><td><code>/speckit-docguard-generate</code></td><td>Reingeniería: genera docs canónicas desde el código</td></tr>
+        <tr><td><code>verify</code><br><span class="badge">Verify</span></td><td><code>/speckit-verify-run</code></td><td>Valida que la implementación cumple los artefactos de spec</td></tr>
+        <tr><td rowspan="5"><code>sync</code><br><span class="badge">Spec Sync</span></td><td><code>/speckit-sync-analyze</code></td><td>Analiza drift entre specs e implementación</td></tr>
+        <tr><td><code>/speckit-sync-propose</code></td><td>Propone resoluciones para el drift detectado</td></tr>
+        <tr><td><code>/speckit-sync-apply</code></td><td>Aplica las resoluciones aprobadas (con tu OK)</td></tr>
+        <tr><td><code>/speckit-sync-conflicts</code></td><td>Detecta conflictos entre specs</td></tr>
+        <tr><td><code>/speckit-sync-backfill</code></td><td>Genera spec a partir de código sin especificar</td></tr>
+      </tbody>
+    </table>
+
+    <h3>8.4 · Se cablean solas al flujo (hooks)</h3>
+    <p>No tienes que acordarte de lanzarlas: al instalarse registran <strong>hooks</strong> en <code>.specify/extensions.yml</code> que se disparan en puntos del flujo (opcionales, te preguntan antes). Cableado real instalado:</p>
+    <table>
+      <thead><tr><th>Punto del flujo</th><th>Dispara</th><th>Prompt</th></tr></thead>
+      <tbody>
+        <tr><td><code>before_tasks</code></td><td><code>docguard.review</code></td><td>"¿Revisar consistencia de docs antes de generar tasks?"</td></tr>
+        <tr><td rowspan="3"><code>after_implement</code></td><td><code>docguard.guard</code></td><td>"¿Ejecutar DocGuard tras implementar?"</td></tr>
+        <tr><td><code>verify.run</code></td><td>"¿Validar implementación contra la spec?"</td></tr>
+        <tr><td><code>sync.analyze</code></td><td>"¿Comprobar drift tras implementar?"</td></tr>
+      </tbody>
+    </table>
+    <p>Con <code>settings.auto_execute_hooks: true</code> (por defecto), tras <code>/speckit-implement</code> Claude te ofrecerá ejecutar los tres gates. Son <code>optional: true</code> → puedes aceptar o saltarlos. Para desactivar uno sin desinstalar: <code>specify extension disable &lt;id&gt;</code>.</p>
+    <div class="callout danger"><span class="tag">Seguridad</span><p>Instalar una extensión registra y ejecuta código de terceros en tu proyecto. Instala solo de fuentes que confíes, prefiere catálogos <code>install_allowed</code> revisados, y si usas <code>--from</code> fija un <strong>tag/release</strong> (no <code>main</code>) y revisa el ZIP antes. En esta guía se instalaron <code>docguard</code>, <code>verify</code> y <code>sync</code> desde el catálogo community oficial de spec-kit.</p></div>
+
+    <!-- 9 -->
+    <h2 id="radu">9 · Lección de Radu: extensiones ganan</h2>
+    <p>Radu Vunvulea comparó <strong>Spec-Kit base</strong> vs <strong>Spec-Kit + extensiones</strong> (y BMAD) dando <em>el mismo prompt idéntico</em> a los tres para construir una app (CloudLatency, monitor de latencia de regiones cloud). Resultado:</p>
+    <table>
+      <thead><tr><th>Métrica</th><th>Base</th><th>+ Extensiones</th></tr></thead>
+      <tbody>
+        <tr><td>Score ponderado global</td><td>~7.1 / 10</td><td><strong>~8.9 / 10</strong></td></tr>
+        <tr><td>Complejidad cognitiva</td><td>referencia</td><td><strong>~50% menos</strong></td></tr>
+        <tr><td>Categorías ganadas (de 8)</td><td>5</td><td>3 (docs, arquitectura, madurez)</td></tr>
+      </tbody>
+    </table>
+    <p>Las extensiones produjeron output más maduro y <em>delivery-ready</em>, destacando en <strong>documentación, arquitectura y madurez de proyecto</strong>. Hallazgo lateral: la arquitectura híbrida de BMAD requería ~59% menos esfuerzo cognitivo (métrica Halstead) — una dimensión que los linters tradicionales no capturan.</p>
+    <div class="callout tip"><span class="tag">Recomendaciones de Radu</span><p>1) Usa extensiones, no solo base — output más maduro. &nbsp; 2) Fija objetivo de cobertura de tests <strong>≥90%</strong>. &nbsp; 3) Aprovecha la generación de docs canónicas de DocGuard para madurez operacional. &nbsp; 4) Mide objetivamente (§10): "éxito = código completo, mantenible y listo para entregar".</p></div>
+
+    <!-- 10 -->
+    <h2 id="medicion">10 · Medición objetiva de calidad (adaptada a JS/TS)</h2>
+    <p>Radu valida el resultado con métricas, no con impresiones. Su stack original es Python; aquí está el <strong>equivalente para JS/TS</strong>. Corre esto tras <code>/speckit-implement</code> para cerrar el loop.</p>
+    <table>
+      <thead><tr><th>Dimensión</th><th>Python (Radu)</th><th>Equivalente JS/TS</th></tr></thead>
+      <tbody>
+        <tr><td>Calidad / estilo</td><td>pylint, flake8</td><td><code>eslint</code> (+ <code>@typescript-eslint</code>)</td></tr>
+        <tr><td>Complejidad ciclomática</td><td>radon cc</td><td><code>eslint</code> rule <code>complexity</code> / <code>plato</code></td></tr>
+        <tr><td>Complejidad cognitiva</td><td>radon hal (Halstead)</td><td><code>eslint-plugin-sonarjs</code> (<code>cognitive-complexity</code>)</td></tr>
+        <tr><td>Mantenibilidad</td><td>radon mi, lizard</td><td><code>plato</code> (Maintainability Index)</td></tr>
+        <tr><td>Cobertura de tests</td><td>pytest --cov</td><td><code>vitest --coverage</code> / <code>jest --coverage</code></td></tr>
+        <tr><td>Documentación</td><td>interrogate</td><td><code>eslint-plugin-jsdoc</code> (require-jsdoc)</td></tr>
+        <tr><td>Seguridad (SAST)</td><td>bandit</td><td><code>npm audit</code>, <code>eslint-plugin-security</code>, <code>semgrep</code></td></tr>
+        <tr><td>Código muerto</td><td>vulture</td><td><code>knip</code> / <code>ts-prune</code></td></tr>
+      </tbody>
+    </table>
+    <h3>Comandos listos para correr</h3>
+    <pre><code><span class="tok-cmt"># Instalar herramientas de medición (una vez)</span>
+<span class="tok-cmd">npm</span> i <span class="tok-flag">-D</span> eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin \
+  eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-jsdoc \
+  plato knip vitest @vitest/coverage-v8
+
+<span class="tok-cmt"># Medir</span>
+<span class="tok-cmd">npx</span> eslint . <span class="tok-flag">--max-warnings</span> 0        <span class="tok-cmt"># calidad, estilo, complejidad cognitiva (sonarjs)</span>
+<span class="tok-cmd">npx</span> plato <span class="tok-flag">-r</span> <span class="tok-flag">-d</span> reports src         <span class="tok-cmt"># mantenibilidad + complejidad → reports/index.html</span>
+<span class="tok-cmd">npx</span> vitest run <span class="tok-flag">--coverage</span>          <span class="tok-cmt"># cobertura (meta ≥ 90%)</span>
+<span class="tok-cmd">npx</span> knip                          <span class="tok-cmt"># exports/deps/archivos muertos</span>
+<span class="tok-cmd">npm</span> audit <span class="tok-flag">--audit-level</span> high       <span class="tok-cmt"># vulnerabilidades de dependencias</span>
+<span class="tok-cmd">npx</span> semgrep <span class="tok-flag">--config</span> auto           <span class="tok-cmt"># SAST (opcional, requiere semgrep instalado)</span></code></pre>
+    <div class="callout tip"><span class="tag">Cierra el loop</span><p>Mete estos comandos en tu CI o en un script <code>npm run quality</code>. Si una métrica cae bajo el umbral, devuelve el reporte a Claude Code y pídele que lo arregle — mismo loop que con los errores de runtime.</p></div>
+
+    <!-- 11 -->
+    <h2 id="presets">11 · Extensiones, presets y bundles (mecánica)</h2>
+    <ul>
+      <li><strong>Extensiones</strong>: añaden capacidades nuevas (comandos + hooks). CLI: <code>specify extension</code>.</li>
+      <li><strong>Presets</strong>: modifican el comportamiento de workflows existentes. CLI: <code>specify preset</code>.</li>
+      <li><strong>Bundles</strong>: paquetes curados de extensiones + presets para un rol (PM, business analyst, developer). CLI: <code>specify bundle</code>.</li>
+      <li><strong>Workflows</strong>: automatizaciones ejecutables. CLI: <code>specify workflow</code>.</li>
+      <li>Todo <strong>resuelve en runtime</strong> con orden de prioridad (menor número = más precedencia). Los overrides locales del proyecto van en <code>.specify/templates/overrides/</code>.</li>
+    </ul>
+    <pre><code><span class="tok-cmt"># Aplicar un preset al inicializar</span>
+<span class="tok-cmd">specify</span> init mi-proyecto <span class="tok-flag">--integration</span> claude <span class="tok-flag">--preset</span> &lt;nombre-preset&gt;
+
+<span class="tok-cmt"># Gestión (subcomandos análogos a extension: list/add/remove/...)</span>
+<span class="tok-cmd">specify</span> preset <span class="tok-flag">--help</span>
+<span class="tok-cmd">specify</span> bundle <span class="tok-flag">--help</span>
+<span class="tok-cmd">specify</span> workflow <span class="tok-flag">--help</span></code></pre>
+    <div class="callout info"><span class="tag">Verificado</span><p>Los grupos de comandos <code>extension</code>, <code>preset</code>, <code>bundle</code>, <code>workflow</code>, <code>integration</code> existen en <code>specify 0.11.8</code> (vistos en <code>specify --help</code>). Para los subcomandos exactos de <code>preset</code>/<code>bundle</code>, corre su <code>--help</code> en tu proyecto.</p></div>
+
+    <!-- 12 -->
+    <h2 id="tips">12 · Tips y gotchas</h2>
+    <ul>
+      <li><strong>El orden importa.</strong> constitution → specify → clarify → plan → tasks → analyze → implement. Saltarte clarify o analyze es donde aparece el rework.</li>
+      <li><strong>Separa el "qué" del "cómo".</strong> Stack solo en <code>/speckit-plan</code>, nunca en <code>/speckit-specify</code>.</li>
+      <li><strong>Audita el plan.</strong> Pide explícitamente a Claude detectar sobre-ingeniería antes de implementar.</li>
+      <li><strong>Devuelve errores.</strong> Tras implementar, corre la app, copia errores de runtime al chat y deja que Claude itere.</li>
+      <li><strong>Prepara el toolchain.</strong> Node/npm/herramientas instaladas antes de <code>/speckit-implement</code>.</li>
+      <li><strong>Versiona <code>.specify/</code> y <code>specs/</code>.</strong> Son artefactos de primera clase, no temporales.</li>
+      <li><strong>Nombres de comando según integración.</strong> Claude Code los instala como <em>skills</em> con guion: <code>/speckit-plan</code>. Otras integraciones (Copilot, etc.) usan la forma con punto <code>/speckit.plan</code>. Los de extensiones, confírmalos con <code>specify extension info &lt;ext&gt;</code> tras instalar.</li>
+      <li><strong>Mide siempre.</strong> "Parece que funciona" no es señal; cobertura ≥90% y lint en cero sí lo son.</li>
+    </ul>
+
+    <h2 id="fuentes">Fuentes</h2>
+    <ul>
+      <li><a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">github.com/github/spec-kit</a> — repo y documentación oficial</li>
+      <li><a href="https://github.com/github/spec-kit/releases" target="_blank" rel="noopener">Releases</a> — tags de versión</li>
+      <li><a href="https://vunvulear.medium.com/i-compared-spec-kit-with-and-without-extensions-here-is-what-i-found-d3fcc2759f08" target="_blank" rel="noopener">Radu Vunvulea — "I compared Spec Kit with and without extensions"</a></li>
+      <li><a href="https://github.com/vunvulear/speckit-assessment" target="_blank" rel="noopener">github.com/vunvulear/speckit-assessment</a> — metodología, extensiones y scoring completos</li>
+    </ul>
+
+    <footer>
+      <p>Guía generada para uso con Claude Code · Spec-Driven Development. Los comandos core están verificados contra la doc oficial; los nombres de slash commands de extensiones deben confirmarse al instalarlas.</p>
+    </footer>
+  </main>
+</div>
+
+<div id="srStatus" class="sr-only" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- Theme toggle (persistente) ----
+  var root = document.documentElement;
+  var themeBtn = document.getElementById("themeBtn");
+  var saved = localStorage.getItem("speckit-theme");
+  if(saved){ root.setAttribute("data-theme", saved); }
+  themeBtn.setAttribute("aria-pressed", root.getAttribute("data-theme") === "light" ? "true" : "false");
+  themeBtn.addEventListener("click", function(){
+    var cur = root.getAttribute("data-theme") === "light" ? "" : "light";
+    if(cur){ root.setAttribute("data-theme", cur); } else { root.removeAttribute("data-theme"); }
+    localStorage.setItem("speckit-theme", cur);
+    themeBtn.setAttribute("aria-pressed", cur === "light" ? "true" : "false");
+  });
+
+  // ---- Mobile sidebar ----
+  var sidebar = document.getElementById("sidebar");
+  var toggle = document.getElementById("menuToggle");
+  var backdrop = document.getElementById("backdrop");
+  function setMenu(open){
+    sidebar.classList.toggle("open", open);
+    backdrop.classList.toggle("show", open);
+    backdrop.hidden = !open;
+    if(toggle){
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+    }
+  }
+  if(toggle){
+    toggle.addEventListener("click", function(){ setMenu(!sidebar.classList.contains("open")); });
+  }
+  backdrop.addEventListener("click", function(){ setMenu(false); });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && sidebar.classList.contains("open")){ setMenu(false); toggle.focus(); }
+  });
+  // cerrar al pulsar un enlace en móvil
+  sidebar.addEventListener("click", function(e){
+    if(e.target.tagName === "A" && window.innerWidth <= 900){ setMenu(false); }
+  });
+
+  // ---- Copy buttons en cada <pre> ----
+  var srStatus = document.getElementById("srStatus");
+  function announce(msg){ if(srStatus){ srStatus.textContent = ""; srStatus.textContent = msg; } }
+
+  function legacyCopy(text){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  document.querySelectorAll("pre").forEach(function(pre){
+    var btn = document.createElement("button");
+    btn.className = "copy-btn";
+    btn.type = "button";
+    btn.textContent = "Copiar";
+    btn.addEventListener("click", function(){
+      var code = pre.querySelector("code");
+      var text = code ? code.innerText : pre.innerText;
+
+      function ok(){
+        btn.textContent = "✓ Copiado";
+        btn.classList.add("done");
+        announce("Comando copiado al portapapeles");
+        setTimeout(function(){ btn.textContent = "Copiar"; btn.classList.remove("done"); }, 1600);
+      }
+      function fail(){
+        if(legacyCopy(text)){ ok(); return; }
+        btn.textContent = "Error al copiar";
+        btn.classList.add("err");
+        announce("No se pudo copiar. Selecciona y copia manualmente.");
+        setTimeout(function(){ btn.textContent = "Copiar"; btn.classList.remove("err"); }, 2200);
+      }
+
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(ok).catch(fail);
+      } else {
+        if(legacyCopy(text)){ ok(); } else { fail(); }
+      }
+    });
+    pre.appendChild(btn);
+  });
+
+  // ---- Scroll-spy: resalta sección activa en el TOC ----
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var map = {};
+  links.forEach(function(a){
+    var id = a.getAttribute("href").slice(1);
+    var sec = document.getElementById(id);
+    if(sec){ map[id] = a; }
+  });
+  var sections = Object.keys(map).map(function(id){ return document.getElementById(id); });
+
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){
+        links.forEach(function(l){ l.classList.remove("active"); });
+        var active = map[en.target.id];
+        if(active){ active.classList.add("active"); }
+      }
+    });
+  }, { rootMargin: "-10% 0px -80% 0px", threshold: 0 });
+
+  sections.forEach(function(s){ observer.observe(s); });
+})();
+</script>
+</body>
+</html>
