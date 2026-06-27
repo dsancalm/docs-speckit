@@ -23,8 +23,8 @@
     --rule:oklch(0.42 0.014 235);
     --text:oklch(0.915 0.01 230);
     --text-dim:oklch(0.70 0.014 232);
-    --accent:oklch(0.80 0.15 156);
-    --accent-strong:oklch(0.74 0.16 156);
+    --accent:oklch(0.82 0.185 152);
+    --accent-strong:oklch(0.76 0.20 152);
     --accent2:oklch(0.78 0.10 235);
     --warn:oklch(0.80 0.12 75);
     --danger:oklch(0.72 0.16 25);
@@ -33,7 +33,7 @@
     --mono:ui-monospace,"SF Mono","SFMono-Regular","Cascadia Code",Menlo,Consolas,monospace;
     --sans:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
     --serif:"Spectral",Georgia,"Iowan Old Style","Times New Roman",serif;
-    --measure:100%;
+    --measure:72ch;
     /* z-index scale */
     --z-topbar:40; --z-backdrop:45; --z-drawer:50; --z-skip:60; --z-tooltip:70;
   }
@@ -109,7 +109,8 @@
   .pill{font-family:var(--mono);font-size:.72rem;letter-spacing:-.01em;background:transparent;border:1px solid var(--border);padding:4px 11px;border-radius:5px;color:var(--text-dim)}
 
   /* headings + prose rhythm */
-  h2{margin:clamp(56px,8vh,80px) 0 0;padding-bottom:14px;border-bottom:1px solid var(--rule);font-family:var(--serif);font-size:clamp(1.55rem,2.6vw,2rem);font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:balance;scroll-margin-top:72px}
+  h2{position:relative;margin:clamp(56px,8vh,80px) 0 0;padding-top:22px;padding-bottom:14px;border-bottom:1px solid var(--rule);font-family:var(--serif);font-size:clamp(1.6rem,2.7vw,2.1rem);font-weight:600;letter-spacing:-.022em;line-height:1.12;text-wrap:balance;scroll-margin-top:72px}
+  h2::before{content:"";position:absolute;top:0;left:0;width:46px;height:3px;border-radius:2px;background:var(--accent)}
   h3{margin:40px 0 0;font-family:var(--serif);font-size:1.28rem;font-weight:600;letter-spacing:-.012em;line-height:1.25;text-wrap:balance;scroll-margin-top:72px}
   h2 + *,h3 + *{margin-top:14px}
   p,li{color:var(--text);max-width:var(--measure)}
@@ -127,8 +128,9 @@
   .tok-cmd{color:var(--accent)}
   .tok-flag{color:var(--accent2)}
   .tok-cmt{color:var(--text-dim);font-style:italic}
-  .copy-btn{position:absolute;top:8px;right:8px;font-family:var(--sans);background:var(--bg-elev);border:1px solid var(--border);color:var(--text-dim);font-size:.72rem;padding:4px 10px;border-radius:5px;cursor:pointer;opacity:0;transition:opacity .15s,color .15s,border-color .15s,transform .1s}
-  pre:hover .copy-btn,pre:focus-within .copy-btn{opacity:1}
+  .copy-btn{position:absolute;top:8px;right:8px;font-family:var(--sans);background:var(--bg-elev);border:1px solid var(--border);color:var(--text-dim);font-size:.72rem;padding:4px 10px;border-radius:5px;cursor:pointer;opacity:.5;transition:opacity .15s,color .15s,border-color .15s,transform .1s}
+  pre:hover .copy-btn,pre:focus-within .copy-btn,.copy-btn:focus-visible{opacity:1}
+  @media(hover:none){.copy-btn{opacity:1}}
   .copy-btn:hover{color:var(--text);border-color:var(--rule)}
   .copy-btn:active{transform:scale(.95)}
   .copy-btn.done{color:var(--accent);border-color:var(--accent);opacity:1}
@@ -174,7 +176,23 @@
   .badge{font-family:var(--mono);display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:4px;background:var(--bg-elev2);border:1px solid var(--border);color:var(--text-dim);margin-left:6px;vertical-align:middle;letter-spacing:-.01em}
   .score{display:inline-flex;align-items:baseline;gap:4px;font-weight:600}
   .score .num{font-family:var(--serif);font-size:1.5rem;color:var(--accent)}
-  hr{border:none;border-top:1px solid var(--rule);margin:40px 0;max-width:var(--measure)}
+  hr{border:none;border-top:1px solid var(--rule);margin:40px 0;max-width:none}
+
+  /* disclosure: colapsa bloques largos (p. ej. la constitution) */
+  details.fold{margin:20px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--code-bg);overflow:hidden}
+  details.fold>summary{font-family:var(--sans);font-size:.82rem;font-weight:600;color:var(--text-dim);padding:12px 16px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;transition:color .15s}
+  details.fold>summary::-webkit-details-marker{display:none}
+  details.fold>summary:hover{color:var(--text)}
+  details.fold>summary::before{content:"▸";display:inline-block;color:var(--accent);font-size:.8em;transition:transform .15s}
+  details.fold[open]>summary::before{transform:rotate(90deg)}
+  details.fold>summary::after{content:"ejemplo · ~33 líneas";margin-left:auto;font-weight:400;font-family:var(--mono);font-size:.7rem;opacity:.65}
+  details.fold pre{margin:0;border:none;border-top:1px solid var(--border);border-radius:0}
+
+  /* back-to-top */
+  .to-top{position:fixed;right:18px;bottom:18px;z-index:var(--z-topbar);width:42px;height:42px;border-radius:50%;background:var(--bg-elev2);border:1px solid var(--rule);color:var(--text);font-size:1.15rem;line-height:1;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s,background .2s,border-color .2s,transform .1s}
+  .to-top.show{opacity:1;pointer-events:auto}
+  .to-top:hover{background:var(--accent);color:oklch(0.16 0.02 152);border-color:var(--accent)}
+  .to-top:active{transform:scale(.92)}
 
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto}
@@ -297,15 +315,16 @@ specs/
     └── research.md</code></pre>
 
     <!-- 5 QUICK START -->
-    <h2 id="quickstart">5 · Quick Start — flujo de trabajo completo <span class="badge">★ lo esencial</span></h2>
+    <h2 id="quickstart">5 · Quick Start: flujo de trabajo completo <span class="badge">★ lo esencial</span></h2>
     <p class="lead">Ejemplo end-to-end: construir <strong>"LinkSnip"</strong>, un acortador de URLs con dashboard (stack JS/TS). Cada paso es un slash command dentro de Claude Code, <strong>en este orden</strong>. Incluye los pasos de extensiones (marcados <span class="badge">ext</span>) y la verificación de calidad.</p>
 
     <div class="callout info"><span class="tag">Cómo leerlo</span><p>Todo lo que empieza por <code>/speckit-</code> se teclea como slash command dentro de Claude Code (no en la terminal). El texto entre comillas es el prompt que escribes junto al comando. Los bloques de terminal (<code>npm</code>, <code>npx</code>…) van en tu shell.</p></div>
 
     <ol class="flow">
       <li>
-        <h4><code>/speckit-constitution</code> — fija los principios</h4>
+        <h4><code>/speckit-constitution</code> ·fija los principios</h4>
         <p>Establece las reglas que Claude respetará en todo el proyecto. Cuanto más concretas y verificables, menos deriva. Ejemplo de constitution endurecida contra sobre-ingeniería:</p>
+        <details class="fold"><summary>Ver la constitution completa</summary>
         <pre><code><span class="tok-cmd">/speckit-constitution</span> Principios de ingeniería para LinkSnip. Son vinculantes
 y prevalecen sobre cualquier "mejor práctica" que añada complejidad no pedida.
 
@@ -339,10 +358,11 @@ GOVERNANCE
   como [OVER-ENGINEERING] y propón la versión mínima.
 - Estos principios ganan a cualquier sugerencia que añada complejidad no
   solicitada.</code></pre>
+        </details>
         <p class="verify">constitution.md recoge estos principios y el agente los cita al planear.</p>
       </li>
       <li>
-        <h4><code>/speckit-specify</code> — define el QUÉ (sin stack)</h4>
+        <h4><code>/speckit-specify</code> ·define el QUÉ (sin stack)</h4>
         <p>Requisitos y user stories. Describe necesidades de usuario, <strong>no</strong> tecnología.</p>
         <pre><code><span class="tok-cmd">/speckit-specify</span> Una app web donde un usuario pega una URL larga y recibe un
 enlace corto. Puede ver una lista de sus enlaces con el conteo de clics. Los
@@ -350,13 +370,13 @@ enlaces caducan a los 30 días. Página pública de redirección. Sin login en v
         <p class="verify">spec.md describe qué/por qué; cero menciones de framework o base de datos.</p>
       </li>
       <li>
-        <h4><code>/speckit-clarify</code> — resuelve ambigüedades</h4>
+        <h4><code>/speckit-clarify</code> ·resuelve ambigüedades</h4>
         <p>Antes de planear: cada ambigüedad resuelta aquí es menos rework después, así que <strong>no te lo saltes</strong>.</p>
         <pre><code><span class="tok-cmd">/speckit-clarify</span></code></pre>
         <p class="verify">No quedan marcadores [NEEDS CLARIFICATION] sin resolver en spec.md.</p>
       </li>
       <li>
-        <h4><code>/speckit-plan</code> — el CÓMO (deja que la IA recomiende el stack)</h4>
+        <h4><code>/speckit-plan</code> ·el CÓMO (deja que la IA recomiende el stack)</h4>
         <p>En vez de dictar tú la tecnología, pide a Claude que <strong>proponga las mejores opciones</strong> para los requisitos y restricciones, con trade-offs y una recomendación por defecto. Tú decides después.</p>
         <pre><code><span class="tok-cmd">/speckit-plan</span> No fijes el stack todavía. Primero, basándote en la spec y la
 constitution, recomienda la mejor arquitectura para LinkSnip bajo estas
@@ -376,26 +396,26 @@ Marca cualquier alternativa que solo aporte flexibilidad especulativa como
         <div class="callout tip" style="margin-top:10px"><span class="tag">Por qué así</span><p>Dejar que la IA proponga y justifique convierte el plan en una decisión informada, no en un capricho del prompt. El gate <code>[RECOMENDADO]</code> / <code>[OVER-ENGINEERING]</code> conecta con la GOVERNANCE de tu constitution: cada pieza debe trazar a un requisito. Si ya tienes el stack decidido, sáltate esto y díctalo — pero entonces pierdes la auditoría de alternativas.</p></div>
       </li>
       <li>
-        <h4><code>/speckit-tasks</code> — desglose ordenado</h4>
+        <h4><code>/speckit-tasks</code> ·desglose ordenado</h4>
         <p>Genera <code>tasks.md</code> en <strong>fases</strong> (Setup → Foundational → User Stories → Polish), con cada task etiquetada <code>[ID] [P] [US#]</code>. No es una lista plana — cada user story es un incremento entregable. Ver cómo se ejecuta en <a href="#ejecucion">§5b</a>.</p>
         <pre><code><span class="tok-cmd">/speckit-tasks</span></code></pre>
         <p class="verify">tasks.md organizado por fases/stories, con dependencias y marcas [P] correctas.</p>
       </li>
       <li>
-        <h4><code>/speckit-checklist</code> — checklist de calidad <span class="badge">opcional</span></h4>
+        <h4><code>/speckit-checklist</code> ·checklist de calidad <span class="badge">opcional</span></h4>
         <p>Genera un checklist de validación a medida contra la spec.</p>
         <pre><code><span class="tok-cmd">/speckit-checklist</span> Genera un checklist de aceptación enfocado en seguridad
 de redirección, validación de URLs y caducidad de enlaces.</code></pre>
         <p class="verify">Checklist cubre los riesgos clave de la feature.</p>
       </li>
       <li>
-        <h4><code>/speckit-analyze</code> — consistencia cruzada</h4>
+        <h4><code>/speckit-analyze</code> ·consistencia cruzada</h4>
         <p>Valida que spec ↔ plan ↔ tasks no se contradigan antes de escribir código.</p>
         <pre><code><span class="tok-cmd">/speckit-analyze</span></code></pre>
         <p class="verify">Cero inconsistencias reportadas entre artefactos.</p>
       </li>
       <li>
-        <h4><code>/speckit-implement</code> — construir</h4>
+        <h4><code>/speckit-implement</code> ·construir</h4>
         <p><strong>Un solo comando ejecuta TODAS las tasks</strong> de <code>tasks.md</code>, fase a fase y en orden de dependencias (no relanzas por task). Detalle completo del modelo de ejecución en <a href="#ejecucion">§5b</a>. Instala antes el tooling local.</p>
         <pre><code><span class="tok-cmt"># Terminal: tener Node/herramientas listas antes</span>
 <span class="tok-cmd">node</span> <span class="tok-flag">-v</span> <span class="tok-cmt"># confirma toolchain</span></code></pre>
@@ -422,14 +442,14 @@ de redirección, validación de URLs y caducidad de enlaces.</code></pre>
       </li>
       <li>
         <h4>Gate de documentación <span class="badge">ext · docguard</span></h4>
-        <p>Gate CDD y docs canónicas para dejar LinkSnip <em>delivery-ready</em>. Comandos reales tras instalar <code>docguard</code> (§8.2):</p>
+        <p>Gate <strong>CDD</strong> (<em>Canonical Documentation</em>: docs canónicas derivadas del código) para dejar LinkSnip <em>delivery-ready</em>. Comandos reales tras instalar <code>docguard</code> (§8.2):</p>
         <pre><code><span class="tok-cmd">/speckit-docguard-guard</span>     <span class="tok-cmt"># gate de validación de docs</span>
 <span class="tok-cmd">/speckit-docguard-score</span>     <span class="tok-cmt"># madurez CDD 0-100 + roadmap por ROI</span>
 <span class="tok-cmd">/speckit-docguard-generate</span>  <span class="tok-cmt"># docs canónicas desde el código (si faltan)</span></code></pre>
         <p class="verify">Gate <code>guard</code> en verde; <code>score</code> CDD por encima de tu umbral.</p>
       </li>
       <li>
-        <h4>Medición objetiva — validar calidad real (ver §10)</h4>
+        <h4>Medición objetiva: validar calidad real (ver §10)</h4>
         <p>Cierra el loop midiendo el resultado, no fiándote del "parece que funciona".</p>
         <pre><code><span class="tok-cmd">npx</span> vitest run <span class="tok-flag">--coverage</span>            <span class="tok-cmt"># cobertura ≥ 90% (meta de Radu)</span>
 <span class="tok-cmd">npx</span> eslint . <span class="tok-flag">--max-warnings</span> 0          <span class="tok-cmt"># calidad/estilo</span>
@@ -437,7 +457,7 @@ de redirección, validación de URLs y caducidad de enlaces.</code></pre>
         <p class="verify">Cobertura ≥90%, cero warnings de lint, índice de mantenibilidad aceptable.</p>
       </li>
       <li>
-        <h4><code>/speckit-taskstoissues</code> <span class="badge">opcional</span> — tracking en GitHub</h4>
+        <h4><code>/speckit-taskstoissues</code> <span class="badge">opcional</span> · tracking en GitHub</h4>
         <p>Convierte las tareas en issues de GitHub. Necesita la CLI <code>gh</code> instalada y autenticada.</p>
         <pre><code><span class="tok-cmd">/speckit-taskstoissues</span></code></pre>
         <p class="verify">Issues creados en el repo, uno por tarea.</p>
@@ -605,7 +625,7 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
         <tr><td>Categorías ganadas (de 8)</td><td>5</td><td>3 (docs, arquitectura, madurez)</td></tr>
       </tbody>
     </table>
-    <p>Las extensiones produjeron output más maduro y <em>delivery-ready</em>, destacando en <strong>documentación, arquitectura y madurez de proyecto</strong>. Hallazgo lateral: la arquitectura híbrida de BMAD requería ~59% menos esfuerzo cognitivo (métrica Halstead) — una dimensión que los linters tradicionales no capturan.</p>
+    <p>Las extensiones produjeron output más maduro y <em>delivery-ready</em>, destacando en <strong>documentación, arquitectura y madurez de proyecto</strong>. Hallazgo lateral: la arquitectura híbrida de BMAD requería ~59% menos esfuerzo cognitivo (<strong>Halstead</strong>: complejidad estimada por volumen de operadores y operandos), una dimensión que los linters tradicionales no capturan.</p>
     <div class="callout tip"><span class="tag">Recomendaciones de Radu</span><p>1) Usa extensiones, no solo base — output más maduro. &nbsp; 2) Fija objetivo de cobertura de tests <strong>≥90%</strong>. &nbsp; 3) Aprovecha la generación de docs canónicas de DocGuard para madurez operacional. &nbsp; 4) Mide objetivamente (§10): "éxito = código completo, mantenible y listo para entregar".</p></div>
 
     <!-- 10 -->
@@ -683,6 +703,8 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
     </footer>
   </main>
 </div>
+
+<button id="toTop" class="to-top" aria-label="Volver arriba" title="Volver arriba">↑</button>
 
 <div id="srStatus" class="sr-only" role="status" aria-live="polite"></div>
 
@@ -882,6 +904,17 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
   }, { rootMargin: "-10% 0px -80% 0px", threshold: 0 });
 
   sections.forEach(function(s){ observer.observe(s); });
+
+  // ---- Back-to-top ----
+  var toTop = document.getElementById("toTop");
+  if(toTop){
+    window.addEventListener("scroll", function(){
+      toTop.classList.toggle("show", window.scrollY > 600);
+    }, { passive: true });
+    toTop.addEventListener("click", function(){
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
 })();
 </script>
 </body>
