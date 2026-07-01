@@ -4,201 +4,270 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Guía Spec-Kit + Claude Code · Spec-Driven Development</title>
-<meta name="description" content="Guía detallada para usar GitHub Spec-Kit con Claude Code: instalación, flujo completo, extensiones (DocGuard, Sync, Verify, Drift) y medición objetiva de calidad." />
+<meta name="description" content="Guía detallada para usar GitHub Spec-Kit con Claude Code: instalación, estructura, flujo completo Spec-Driven Development y referencia de comandos core." />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Guía Spec-Kit + Claude Code · Spec-Driven Development" />
-<meta property="og:description" content="Flujo end-to-end de Spec-Driven Development con GitHub Spec-Kit y Claude Code: instalación, comandos core, extensiones y medición objetiva de calidad." />
+<meta property="og:description" content="Flujo end-to-end de Spec-Driven Development con GitHub Spec-Kit y Claude Code: instalación, comandos core y referencia del flujo completo." />
 <meta name="twitter:card" content="summary" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1117'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%233fb950'/%3E%3C/svg%3E" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23151312'/%3E%3Crect x='8' y='8' width='16' height='16' fill='none' stroke='%23e8492e' stroke-width='2.5'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
 <style>
   :root{
-    /* dark editorial (default) */
-    --bg:oklch(0.18 0.012 235);
-    --bg-elev:oklch(0.215 0.013 235);
-    --bg-elev2:oklch(0.255 0.014 235);
-    --border:oklch(0.33 0.012 235);
-    --rule:oklch(0.42 0.014 235);
-    --text:oklch(0.915 0.01 230);
-    --text-dim:oklch(0.70 0.014 232);
-    --accent:oklch(0.82 0.185 152);
-    --accent-strong:oklch(0.76 0.20 152);
-    --accent2:oklch(0.78 0.10 235);
-    --warn:oklch(0.80 0.12 75);
-    --danger:oklch(0.72 0.16 25);
-    --code-bg:oklch(0.155 0.012 235);
-    --radius:8px;
-    --mono:ui-monospace,"SF Mono","SFMono-Regular","Cascadia Code",Menlo,Consolas,monospace;
-    --sans:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
-    --serif:"Spectral",Georgia,"Iowan Old Style","Times New Roman",serif;
-    --measure:72ch;
+    /* light: drafting-white (cool, not cream) — default */
+    --bg:oklch(0.982 0.003 250);
+    --surface:oklch(0.958 0.004 250);
+    --surface2:oklch(0.930 0.005 255);
+    --border:oklch(0.885 0.006 255);
+    --rule:oklch(0.80 0.008 255);
+    --text:oklch(0.245 0.014 262);
+    --text-dim:oklch(0.455 0.014 260);
+    --accent:oklch(0.55 0.205 33);
+    --accent-strong:oklch(0.49 0.21 32);
+    --steel:oklch(0.50 0.115 240);
+    --warn:oklch(0.52 0.12 66);
+    --danger:oklch(0.52 0.20 27);
+    --code-bg:oklch(0.955 0.006 255);
+    --code-border:oklch(0.87 0.007 255);
+    --on-accent:oklch(0.99 0.01 40);
+
+    --radius:7px;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:"Archivo",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    --measure:68ch;
+    --ease:cubic-bezier(.16,1,.3,1);
     /* z-index scale */
     --z-topbar:40; --z-backdrop:45; --z-drawer:50; --z-skip:60; --z-tooltip:70;
   }
-  [data-theme="light"]{
-    --bg:oklch(0.99 0.004 235);
-    --bg-elev:oklch(0.975 0.005 235);
-    --bg-elev2:oklch(0.945 0.006 235);
-    --border:oklch(0.88 0.006 235);
-    --rule:oklch(0.80 0.008 235);
-    --text:oklch(0.255 0.016 240);
-    --text-dim:oklch(0.44 0.014 240);
-    --accent:oklch(0.50 0.13 156);
-    --accent-strong:oklch(0.46 0.14 156);
-    --accent2:oklch(0.48 0.13 248);
-    --warn:oklch(0.52 0.11 70);
-    --danger:oklch(0.52 0.18 27);
-    --code-bg:oklch(0.965 0.006 235);
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme]){ color-scheme:dark;
+      --bg:oklch(0.165 0.007 40);
+      --surface:oklch(0.205 0.008 38);
+      --surface2:oklch(0.245 0.009 36);
+      --border:oklch(0.315 0.010 36);
+      --rule:oklch(0.42 0.012 36);
+      --text:oklch(0.925 0.007 60);
+      --text-dim:oklch(0.70 0.012 48);
+      --accent:oklch(0.685 0.195 36);
+      --accent-strong:oklch(0.745 0.20 38);
+      --steel:oklch(0.76 0.10 235);
+      --warn:oklch(0.80 0.115 72);
+      --danger:oklch(0.72 0.16 25);
+      --code-bg:oklch(0.145 0.007 40);
+      --code-border:oklch(0.30 0.010 38);
+      --on-accent:oklch(0.16 0.02 40);
+    }
   }
+  :root[data-theme="dark"]{ color-scheme:dark;
+    --bg:oklch(0.165 0.007 40);
+    --surface:oklch(0.205 0.008 38);
+    --surface2:oklch(0.245 0.009 36);
+    --border:oklch(0.315 0.010 36);
+    --rule:oklch(0.42 0.012 36);
+    --text:oklch(0.925 0.007 60);
+    --text-dim:oklch(0.70 0.012 48);
+    --accent:oklch(0.685 0.195 36);
+    --accent-strong:oklch(0.745 0.20 38);
+    --steel:oklch(0.76 0.10 235);
+    --warn:oklch(0.80 0.115 72);
+    --danger:oklch(0.72 0.16 25);
+    --code-bg:oklch(0.145 0.007 40);
+    --code-border:oklch(0.30 0.010 38);
+    --on-accent:oklch(0.16 0.02 40);
+  }
+
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.72;font-size:17px;font-feature-settings:"liga" 1,"onum" 1;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-  a{color:var(--accent);text-decoration:none;text-underline-offset:3px;text-decoration-thickness:from-font}
-  a:hover{text-decoration:underline}
-  code{font-family:var(--mono);font-size:.86em;font-feature-settings:normal}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.68;font-size:17px;font-feature-settings:"ss01" 1;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:var(--accent-strong);text-decoration:none;text-underline-offset:3px;text-decoration-thickness:1px}
+  a:hover{text-decoration:underline;text-decoration-color:var(--accent)}
+  code{font-family:var(--mono);font-size:.85em}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
   button{font-family:var(--sans)}
+  ::selection{background:color-mix(in oklab,var(--accent) 32%,transparent)}
 
   /* a11y helpers */
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-  .skip-link{position:fixed;top:8px;left:8px;z-index:var(--z-skip);background:var(--accent-strong);color:oklch(0.99 0 0);font-family:var(--sans);padding:8px 14px;border-radius:6px;font-size:.9rem;transform:translateY(-150%);transition:transform .2s}
+  .skip-link{position:fixed;top:8px;left:8px;z-index:var(--z-skip);background:var(--accent-strong);color:var(--on-accent);font-family:var(--mono);font-size:.8rem;padding:8px 14px;border-radius:6px;transform:translateY(-160%);transition:transform .2s var(--ease)}
   .skip-link:focus{transform:translateY(0);text-decoration:none}
-  .backdrop{display:none;position:fixed;inset:0;background:oklch(0.1 0.01 235 / .6);z-index:var(--z-backdrop)}
+  .backdrop{display:none;position:fixed;inset:0;background:oklch(0.1 0.01 40 / .6);z-index:var(--z-backdrop)}
   .backdrop.show{display:block}
-  @media(min-width:901px){.backdrop{display:none!important}}
+  @media(min-width:961px){.backdrop{display:none!important}}
 
-  /* layout: reading column left, contents rail right (no markup move) */
-  .layout{display:grid;grid-template-columns:minmax(0,1fr) 248px;gap:clamp(28px,4vw,64px);max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
-  .content{grid-column:1;grid-row:1;padding:clamp(40px,6vh,76px) 0 96px;min-width:0}
-  .sidebar{grid-column:2;grid-row:1;position:sticky;top:0;align-self:start;max-height:100dvh;overflow-y:auto;scrollbar-width:thin;scrollbar-gutter:stable;padding:clamp(28px,4vh,52px) 4px 32px 20px;border-left:1px solid var(--border)}
-  @media(max-width:900px){
+  /* layout: index rail left, reading column right */
+  .layout{display:grid;grid-template-columns:288px minmax(0,1fr);gap:clamp(28px,4vw,68px);max-width:1400px;margin:0 auto;padding:0 clamp(20px,4vw,52px)}
+  .content{min-width:0;padding:clamp(40px,6vh,80px) 0 100px}
+  .sidebar{position:sticky;top:0;align-self:start;max-height:100dvh;overflow-y:auto;scrollbar-width:thin;scrollbar-gutter:stable;padding:clamp(26px,4vh,46px) 22px 32px 2px;border-right:1px solid var(--border)}
+  @media(max-width:960px){
     .layout{grid-template-columns:1fr;padding:0}
-    .content{grid-column:1;padding:76px 20px 64px}
-    .sidebar{grid-column:1;position:fixed;top:0;left:-320px;width:288px;height:100dvh;z-index:var(--z-drawer);background:var(--bg-elev);border-left:none;border-right:1px solid var(--border);padding:24px 20px;transition:left .28s cubic-bezier(.22,1,.36,1);box-shadow:0 0 60px oklch(0.1 0.01 235 / .5)}
+    .content{padding:74px 20px 72px}
+    .sidebar{position:fixed;top:0;left:-340px;width:308px;height:100dvh;z-index:var(--z-drawer);background:var(--surface);border-right:1px solid var(--border);padding:24px 20px;transition:left .3s var(--ease);box-shadow:0 0 60px oklch(0.1 0.01 40 / .45)}
     .sidebar.open{left:0}
     .menu-toggle{display:flex!important}
   }
+  /* touch targets ≥44px on coarse pointers */
+  @media(max-width:960px){
+    nav a{padding-top:9px;padding-bottom:9px}
+    .copy-btn{padding:10px 13px;font-size:.7rem}
+    .menu-toggle{min-height:44px;min-width:44px;justify-content:center}
+    .theme-btn{padding:12px}
+    .pipeline a{padding:10px 12px 10px 9px}
+  }
 
-  /* contents rail */
-  .brand{font-family:var(--sans);font-weight:600;font-size:.98rem;letter-spacing:-.01em;margin-bottom:4px;display:flex;align-items:center;gap:9px}
-  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in oklab,var(--accent) 18%,transparent)}
-  .brand-sub{color:var(--text-dim);font-size:.8rem;line-height:1.5;margin-bottom:26px;max-width:30ch}
+  /* titleblock / masthead */
+  .plate{border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;margin-bottom:26px;background:var(--surface)}
+  .plate-top{display:flex;align-items:center;gap:10px;padding:13px 14px}
+  .plate-mark{width:15px;height:15px;flex:none;border:2.5px solid var(--accent);background:transparent}
+  .plate-title{font-weight:800;font-size:.94rem;letter-spacing:-.02em;line-height:1.05}
+  .plate-sub{font-family:var(--mono);font-size:.66rem;letter-spacing:.02em;color:var(--text-dim);text-transform:uppercase;padding:0 14px 6px}
+  .plate-rev{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.62rem;letter-spacing:.03em;color:var(--text-dim);border-top:1px solid var(--border);padding:7px 14px;text-transform:uppercase}
+  .plate-rev b{color:var(--accent);font-weight:500}
+
   nav{font-family:var(--sans)}
-  nav a{display:block;color:var(--text-dim);padding:5px 10px;border-radius:6px;font-size:.84rem;line-height:1.45;transition:color .15s,background .15s}
-  nav a:hover{background:var(--bg-elev);color:var(--text);text-decoration:none}
-  nav a.active{color:var(--accent);background:color-mix(in oklab,var(--accent) 12%,transparent);font-weight:500}
-  nav .group{margin-top:22px;font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);padding:0 10px 6px;font-weight:600}
-  nav .group:first-of-type{margin-top:6px}
+  nav a{display:flex;gap:9px;color:var(--text-dim);padding:5px 9px;border-radius:5px;font-size:.83rem;line-height:1.35;transition:color .15s,background .15s}
+  nav a .n{font-family:var(--mono);font-size:.72rem;color:var(--text-dim);flex:none;padding-top:1px;transition:color .15s}
+  nav a:hover{background:var(--surface2);color:var(--text);text-decoration:none}
+  nav a:hover .n{color:var(--text)}
+  nav a.active{color:var(--text);background:color-mix(in oklab,var(--accent) 12%,transparent);font-weight:600}
+  nav a.active .n{color:var(--accent)}
+  nav .group{margin-top:20px;font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);padding:0 9px 6px;font-weight:500}
+  nav .group:first-of-type{margin-top:8px}
 
   /* topbar mobile */
-  .topbar{position:fixed;top:0;left:0;right:0;height:54px;background:color-mix(in oklab,var(--bg) 86%,transparent);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border);display:none;align-items:center;gap:12px;padding:0 16px;z-index:var(--z-topbar)}
-  @media(max-width:900px){.topbar{display:flex}}
-  .topbar .brand{margin-bottom:0}
+  .topbar{position:fixed;top:0;left:0;right:0;height:52px;background:color-mix(in oklab,var(--bg) 84%,transparent);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border);display:none;align-items:center;gap:12px;padding:0 14px;z-index:var(--z-topbar)}
+  @media(max-width:960px){.topbar{display:flex}}
+  .topbar-brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:.9rem;letter-spacing:-.01em}
+  .topbar-brand span{width:12px;height:12px;border:2.5px solid var(--accent)}
   .menu-toggle{display:none;background:none;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 11px;cursor:pointer;font-size:1rem;line-height:1;transition:background .2s,transform .1s}
-  .menu-toggle:hover{background:var(--bg-elev2)}
+  .menu-toggle:hover{background:var(--surface2)}
   .menu-toggle:active{transform:scale(.95)}
 
   /* hero */
-  .hero{margin-bottom:clamp(40px,6vh,64px)}
-  .hero h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(2.6rem,6vw,4.4rem);line-height:1.02;letter-spacing:-.025em;text-wrap:balance}
-  .hero p{margin:20px 0 0;font-style:italic;font-size:clamp(1.1rem,1.8vw,1.35rem);line-height:1.5;color:var(--text-dim);max-width:72ch;text-wrap:pretty}
-  .hero p strong,.hero p em{font-style:normal;color:var(--text);font-weight:500}
-  .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
-  .pill{font-family:var(--mono);font-size:.72rem;letter-spacing:-.01em;background:transparent;border:1px solid var(--border);padding:4px 11px;border-radius:5px;color:var(--text-dim)}
+  .hero{margin-bottom:clamp(38px,6vh,60px)}
+  .kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.02em;color:var(--text-dim);text-transform:uppercase;display:flex;align-items:center;gap:9px;margin-bottom:18px}
+  .kicker::before{content:"";width:26px;height:2px;background:var(--accent)}
+  .hero h1{margin:0;font-weight:800;font-size:clamp(2.5rem,6.4vw,4.6rem);line-height:.98;letter-spacing:-.035em;text-wrap:balance}
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero .lead{margin:22px 0 0;font-size:clamp(1.06rem,1.7vw,1.28rem);line-height:1.55;color:var(--text-dim);max-width:60ch;text-wrap:pretty}
+  .hero .lead strong{color:var(--text);font-weight:600}
+  .hero .lead em{font-style:normal;color:var(--accent-strong);font-weight:600}
+
+  /* pipeline diagram (imagery) */
+  .pipeline{display:flex;flex-wrap:wrap;align-items:center;gap:7px 5px;margin:30px 0 0;padding:16px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);list-style:none;counter-reset:pl}
+  .pipeline li{display:flex;align-items:center}
+  .pipeline li:not(:first-child)::before{content:"";width:12px;height:1.5px;background:var(--rule);margin-right:5px;flex:none}
+  .pipeline a{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.76rem;letter-spacing:-.01em;padding:7px 11px 7px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);white-space:nowrap;transition:border-color .18s,color .18s,background .18s}
+  .pipeline a::before{counter-increment:pl;content:counter(pl);display:grid;place-items:center;width:17px;height:17px;flex:none;font-size:.66rem;font-weight:700;color:var(--accent);border:1px solid color-mix(in oklab,var(--accent) 42%,transparent);background:color-mix(in oklab,var(--accent) 12%,transparent)}
+  .pipeline a:hover{border-color:var(--accent);color:var(--accent-strong);text-decoration:none;background:color-mix(in oklab,var(--accent) 7%,var(--bg))}
 
   /* headings + prose rhythm */
-  h2{position:relative;margin:clamp(56px,8vh,80px) 0 0;padding-top:22px;padding-bottom:14px;border-bottom:1px solid var(--rule);font-family:var(--serif);font-size:clamp(1.6rem,2.7vw,2.1rem);font-weight:600;letter-spacing:-.022em;line-height:1.12;text-wrap:balance;scroll-margin-top:72px}
-  h2::before{content:"";position:absolute;top:0;left:0;width:46px;height:3px;border-radius:2px;background:var(--accent)}
-  h3{margin:40px 0 0;font-family:var(--serif);font-size:1.28rem;font-weight:600;letter-spacing:-.012em;line-height:1.25;text-wrap:balance;scroll-margin-top:72px}
+  h2{position:relative;margin:clamp(54px,8vh,82px) 0 0;padding-top:20px;padding-bottom:12px;border-bottom:1px solid var(--rule);font-weight:800;font-size:clamp(1.55rem,2.7vw,2.15rem);letter-spacing:-.03em;line-height:1.08;text-wrap:balance;scroll-margin-top:70px;display:flex;align-items:baseline;gap:12px}
+  h2::before{content:"";position:absolute;top:0;left:0;width:44px;height:3px;background:var(--accent)}
+  h2 .cl{font-family:var(--mono);font-size:.62em;font-weight:500;color:var(--accent);letter-spacing:0;flex:none;transform:translateY(-.05em)}
+  h2 .badge{align-self:center}
+  h3{margin:38px 0 0;font-weight:700;font-size:1.24rem;letter-spacing:-.018em;line-height:1.22;text-wrap:balance;scroll-margin-top:70px}
+  h3 code{color:var(--accent-strong)}
   h2 + *,h3 + *{margin-top:14px}
   p,li{color:var(--text);max-width:var(--measure)}
-  p{margin:18px 0;text-wrap:pretty}
-  li{margin:7px 0}
-  ul,ol{padding-left:1.4em}
-  li::marker{color:var(--text-dim)}
-  strong{font-weight:600}
-  .lead{color:var(--text-dim);font-size:1.06rem;max-width:80ch}
+  p{margin:17px 0;text-wrap:pretty}
+  li{margin:6px 0}
+  ul,ol{padding-left:1.35em}
+  li::marker{color:var(--accent)}
+  strong{font-weight:700}
+  em{font-style:italic}
+  .lead{color:var(--text-dim);font-size:1.04rem;max-width:74ch}
 
   /* code */
-  pre{position:relative;background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px;overflow-x:auto;scrollbar-width:thin;margin:20px 0;font-size:.92rem}
-  pre code{color:var(--text);white-space:pre;line-height:1.6}
-  :not(pre) > code{background:var(--bg-elev2);border:1px solid var(--border);border-radius:4px;padding:.08em .38em}
-  .tok-cmd{color:var(--accent)}
-  .tok-flag{color:var(--accent2)}
+  pre{position:relative;background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius);padding:16px 16px;overflow-x:auto;scrollbar-width:thin;margin:18px 0;font-size:.9rem}
+  pre code{color:var(--text);white-space:pre;line-height:1.62;font-family:var(--mono)}
+  :not(pre) > code{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:.06em .36em}
+  .tok-cmd{color:var(--accent-strong);font-weight:500}
+  .tok-flag{color:var(--steel)}
   .tok-cmt{color:var(--text-dim);font-style:italic}
-  .copy-btn{position:absolute;top:8px;right:8px;font-family:var(--sans);background:var(--bg-elev);border:1px solid var(--border);color:var(--text-dim);font-size:.72rem;padding:4px 10px;border-radius:5px;cursor:pointer;opacity:.5;transition:opacity .15s,color .15s,border-color .15s,transform .1s}
+  .copy-btn{position:absolute;top:8px;right:8px;font-family:var(--mono);background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-size:.68rem;padding:4px 9px;border-radius:5px;cursor:pointer;opacity:.5;transition:opacity .15s,color .15s,border-color .15s,transform .1s}
   pre:hover .copy-btn,pre:focus-within .copy-btn,.copy-btn:focus-visible{opacity:1}
   @media(hover:none){.copy-btn{opacity:1}}
   .copy-btn:hover{color:var(--text);border-color:var(--rule)}
   .copy-btn:active{transform:scale(.95)}
   .copy-btn.done{color:var(--accent);border-color:var(--accent);opacity:1}
   .copy-btn.err{color:var(--danger);border-color:var(--danger);opacity:1}
-  .sel-copy-btn{position:fixed;z-index:var(--z-tooltip);font-family:var(--sans);background:var(--bg-elev2);border:1px solid var(--rule);color:var(--text);font-size:.72rem;padding:5px 11px;border-radius:6px;cursor:pointer;box-shadow:0 4px 16px oklch(0.1 0.01 235 / .45);display:none;align-items:center;gap:5px;opacity:0;transform:translateY(4px);transition:opacity .12s ease-out,transform .12s ease-out}
+  .sel-copy-btn{position:fixed;z-index:var(--z-tooltip);font-family:var(--mono);background:var(--surface2);border:1px solid var(--rule);color:var(--text);font-size:.68rem;padding:5px 10px;border-radius:6px;cursor:pointer;box-shadow:0 4px 16px oklch(0.1 0.01 40 / .4);display:none;align-items:center;gap:5px;opacity:0;transform:translateY(4px);transition:opacity .12s ease-out,transform .12s ease-out}
   .sel-copy-btn.show{display:inline-flex;opacity:1;transform:translateY(0)}
-  .sel-copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .sel-copy-btn:hover{border-color:var(--accent);color:var(--accent-strong)}
   .sel-copy-btn.done{color:var(--accent);border-color:var(--accent)}
   @media (prefers-reduced-motion: reduce){.sel-copy-btn{transition:none;transform:none}.sel-copy-btn.show{transform:none}}
 
-  /* tables: editorial horizontal rules, no grid */
-  table{border-collapse:collapse;width:100%;margin:22px 0;font-family:var(--sans);font-size:.88rem;font-variant-numeric:tabular-nums}
-  th,td{padding:11px 16px 11px 0;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
-  th{font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);border-bottom:2px solid var(--rule)}
+  /* tables: datasheet hairline rows */
+  .table-wrap{overflow-x:auto;scrollbar-width:thin;margin:20px 0;max-width:var(--measure)}
+  .table-wrap table{margin:0}
+  table{border-collapse:collapse;width:100%;margin:20px 0;font-size:.87rem;font-variant-numeric:tabular-nums}
+  th,td{padding:10px 16px 10px 0;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+  th{font-family:var(--mono);font-weight:500;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);border-bottom:2px solid var(--rule)}
   tbody tr:last-child td{border-bottom:none}
-  td code{color:var(--accent);background:none;border:none;padding:0}
+  td code{color:var(--accent-strong);background:none;border:none;padding:0}
 
-  /* callouts: full thin border + tint, no side stripe */
-  .callout{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:22px 0;background:var(--bg-elev);max-width:var(--measure)}
+  /* notes / warnings — full border + tint, mono tag, no side stripe */
+  .callout{border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px;margin:20px 0;background:var(--surface);max-width:var(--measure)}
   .callout p{margin:0;max-width:none}
-  .callout .tag{font-family:var(--sans);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px}
-  .callout.tip{background:color-mix(in oklab,var(--accent) 7%,var(--bg-elev));border-color:color-mix(in oklab,var(--accent) 30%,var(--border))} .callout.tip .tag{color:var(--accent)}
-  .callout.warn{background:color-mix(in oklab,var(--warn) 8%,var(--bg-elev));border-color:color-mix(in oklab,var(--warn) 32%,var(--border))} .callout.warn .tag{color:var(--warn)}
-  .callout.danger{background:color-mix(in oklab,var(--danger) 8%,var(--bg-elev));border-color:color-mix(in oklab,var(--danger) 32%,var(--border))} .callout.danger .tag{color:var(--danger)}
-  .callout.info{background:color-mix(in oklab,var(--accent2) 8%,var(--bg-elev));border-color:color-mix(in oklab,var(--accent2) 32%,var(--border))} .callout.info .tag{color:var(--accent2)}
+  .callout .tag{font-family:var(--mono);font-weight:700;font-size:.66rem;text-transform:uppercase;letter-spacing:.05em;display:inline-flex;align-items:center;gap:7px;margin-bottom:7px}
+  .callout .tag::before{content:"";width:8px;height:8px;flex:none}
+  .callout.tip{background:color-mix(in oklab,var(--accent) 6%,var(--surface));border-color:color-mix(in oklab,var(--accent) 28%,var(--border))} .callout.tip .tag{color:var(--accent-strong)} .callout.tip .tag::before{background:var(--accent)}
+  .callout.warn{background:color-mix(in oklab,var(--warn) 8%,var(--surface));border-color:color-mix(in oklab,var(--warn) 32%,var(--border))} .callout.warn .tag{color:var(--warn)} .callout.warn .tag::before{background:var(--warn)}
+  .callout.danger{background:color-mix(in oklab,var(--danger) 8%,var(--surface));border-color:color-mix(in oklab,var(--danger) 32%,var(--border))} .callout.danger .tag{color:var(--danger)} .callout.danger .tag::before{background:var(--danger)}
+  .callout.info{background:color-mix(in oklab,var(--steel) 8%,var(--surface));border-color:color-mix(in oklab,var(--steel) 30%,var(--border))} .callout.info .tag{color:var(--steel)} .callout.info .tag::before{background:var(--steel)}
 
   /* step flow: real ordered sequence -> numbered markers earned */
-  .flow{counter-reset:step;margin:24px 0;padding:0;list-style:none}
-  .flow>li{position:relative;border:1px solid var(--border);border-radius:var(--radius);padding:20px 20px 20px 64px;margin:0 0 14px;background:var(--bg-elev);max-width:none}
-  .flow>li::before{counter-increment:step;content:counter(step);position:absolute;left:18px;top:18px;width:32px;height:32px;border-radius:50%;background:color-mix(in oklab,var(--accent) 16%,transparent);border:1px solid color-mix(in oklab,var(--accent) 45%,transparent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:500;font-size:.92rem}
-  .flow h4{margin:0 0 8px;font-family:var(--serif);font-size:1.1rem;font-weight:600;letter-spacing:-.01em}
+  .flow{counter-reset:step;margin:22px 0;padding:0;list-style:none}
+  .flow>li{position:relative;border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px 18px 62px;margin:0 0 12px;background:var(--surface);max-width:none}
+  .flow>li::before{counter-increment:step;content:counter(step);position:absolute;left:16px;top:17px;width:32px;height:32px;background:color-mix(in oklab,var(--accent) 12%,transparent);border:1px solid color-mix(in oklab,var(--accent) 42%,transparent);color:var(--accent);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:.78rem}
+  .flow h3{margin:0 0 7px;font-weight:700;font-size:1.08rem;letter-spacing:-.015em}
   .flow p{max-width:none}
-  .flow .verify{font-family:var(--sans);color:var(--accent);font-size:.82rem;margin-top:10px;max-width:none}
-  .flow .verify::before{content:"verify  ";font-weight:600;font-variant:small-caps;letter-spacing:.04em;opacity:.85}
+  .flow .verify{font-family:var(--mono);color:var(--accent-strong);font-size:.78rem;margin-top:9px;max-width:none;line-height:1.5}
+  .flow .verify::before{content:"✓ VERIFY  ";font-weight:700;letter-spacing:.04em}
 
   /* theme btn */
-  .theme-btn{font-family:var(--sans);background:none;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;cursor:pointer;font-size:.82rem;margin-top:24px;width:100%;text-align:left;transition:background .2s,border-color .2s,transform .1s}
-  .theme-btn:hover{background:var(--bg-elev);border-color:var(--rule)}
+  .theme-btn{font-family:var(--mono);background:none;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;cursor:pointer;font-size:.74rem;margin-top:22px;width:100%;display:flex;align-items:center;gap:9px;transition:background .2s,border-color .2s,transform .1s}
+  .theme-btn:hover{background:var(--surface2);border-color:var(--rule)}
   .theme-btn:active{transform:scale(.98)}
+  .theme-btn .ico{width:14px;height:14px;flex:none}
 
-  footer{margin-top:80px;padding-top:28px;border-top:1px solid var(--rule);color:var(--text-dim);font-size:.88rem}
+  footer{margin-top:76px;padding-top:26px;border-top:1px solid var(--rule);color:var(--text-dim);font-size:.86rem}
   footer p{max-width:var(--measure)}
-  .badge{font-family:var(--mono);display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:4px;background:var(--bg-elev2);border:1px solid var(--border);color:var(--text-dim);margin-left:6px;vertical-align:middle;letter-spacing:-.01em}
-  .score{display:inline-flex;align-items:baseline;gap:4px;font-weight:600}
-  .score .num{font-family:var(--serif);font-size:1.5rem;color:var(--accent)}
-  hr{border:none;border-top:1px solid var(--rule);margin:40px 0;max-width:none}
+  .badge{font-family:var(--mono);display:inline-block;font-size:.64rem;padding:2px 7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);margin-left:5px;vertical-align:middle;letter-spacing:0;text-transform:uppercase;font-weight:500}
+  hr{border:none;border-top:1px solid var(--rule);margin:38px 0;max-width:none}
 
   /* disclosure: colapsa bloques largos (p. ej. la constitution) */
-  details.fold{margin:20px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--code-bg);overflow:hidden}
-  details.fold>summary{font-family:var(--sans);font-size:.82rem;font-weight:600;color:var(--text-dim);padding:12px 16px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;transition:color .15s}
+  details.fold{margin:18px 0;border:1px solid var(--code-border);border-radius:var(--radius);background:var(--code-bg);overflow:hidden}
+  details.fold>summary{font-family:var(--mono);font-size:.76rem;font-weight:500;color:var(--text-dim);padding:11px 15px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;transition:color .15s}
   details.fold>summary::-webkit-details-marker{display:none}
   details.fold>summary:hover{color:var(--text)}
   details.fold>summary::before{content:"▸";display:inline-block;color:var(--accent);font-size:.8em;transition:transform .15s}
   details.fold[open]>summary::before{transform:rotate(90deg)}
-  details.fold>summary::after{content:"ejemplo · ~33 líneas";margin-left:auto;font-weight:400;font-family:var(--mono);font-size:.7rem;opacity:.65}
-  details.fold pre{margin:0;border:none;border-top:1px solid var(--border);border-radius:0}
+  details.fold>summary::after{content:"~33 líneas";margin-left:auto;font-weight:400;font-size:.68rem;opacity:.65;text-transform:uppercase}
+  details.fold pre{margin:0;border:none;border-top:1px solid var(--code-border);border-radius:0;background:transparent}
 
   /* back-to-top */
-  .to-top{position:fixed;right:18px;bottom:18px;z-index:var(--z-topbar);width:42px;height:42px;border-radius:50%;background:var(--bg-elev2);border:1px solid var(--rule);color:var(--text);font-size:1.15rem;line-height:1;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s,background .2s,border-color .2s,transform .1s}
+  .to-top{position:fixed;right:18px;bottom:18px;z-index:var(--z-topbar);width:42px;height:42px;background:var(--surface2);border:1px solid var(--rule);color:var(--text);font-size:1.1rem;line-height:1;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s,background .2s,border-color .2s,transform .1s}
   .to-top.show{opacity:1;pointer-events:auto}
-  .to-top:hover{background:var(--accent);color:oklch(0.16 0.02 152);border-color:var(--accent)}
+  .to-top:hover{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
   .to-top:active{transform:scale(.92)}
+
+  /* motion — gated on .js so no-JS/headless ships visible */
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .js .load{opacity:0;animation:rise .7s var(--ease) forwards;animation-delay:var(--d,0ms)}
+  .js .pipeline li{opacity:0;animation:rise .5s var(--ease) forwards;animation-delay:calc(320ms + var(--i,0)*55ms)}
+  .js .reveal{opacity:0;transform:translateY(14px);transition:opacity .55s var(--ease),transform .55s var(--ease)}
+  .js .reveal.in{opacity:1;transform:none}
 
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto}
+    .js .load,.js .pipeline li,.js .reveal{opacity:1;transform:none;animation:none}
     *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   }
 </style>
+<script>(function(){var r=document.documentElement;r.classList.add("js");try{var s=localStorage.getItem("speckit-theme");if(s==="light"||s==="dark")r.setAttribute("data-theme",s);}catch(e){}})();</script>
 </head>
 <body>
 
@@ -206,57 +275,66 @@
 
 <div class="topbar">
   <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-controls="sidebar" aria-expanded="false">☰</button>
-  <span class="brand"><span class="dot"></span> Spec-Kit + Claude Code</span>
+  <span class="topbar-brand"><span></span> Spec-Kit × Claude Code</span>
 </div>
 
 <div class="backdrop" id="backdrop" hidden></div>
 
 <div class="layout">
   <aside class="sidebar" id="sidebar">
-    <div class="brand"><span class="dot"></span> Spec-Kit</div>
-    <div class="brand-sub">Guía Spec-Driven Development con Claude Code</div>
-    <nav id="toc">
-      <a href="#que-es">1 · Qué es</a>
-      <a href="#instalacion">2 · Instalación</a>
-      <a href="#init">3 · Inicializar proyecto</a>
-      <a href="#estructura">4 · Estructura generada</a>
+    <div class="plate">
+      <div class="plate-top">
+        <span class="plate-mark" aria-hidden="true"></span>
+        <span class="plate-title">Spec-Kit × Claude Code</span>
+      </div>
+      <div class="plate-sub">Spec-Driven Development</div>
+      <div class="plate-rev"><span>Doc. control</span> <b>rev · specify 0.11.8</b></div>
+    </div>
+    <nav id="toc" aria-label="Índice del documento">
+      <a href="#que-es"><span class="n">1</span> Qué es</a>
+      <a href="#instalacion"><span class="n">2</span> Instalación</a>
+      <a href="#init"><span class="n">3</span> Inicializar proyecto</a>
+      <a href="#estructura"><span class="n">4</span> Estructura generada</a>
       <div class="group">★ Empezar aquí</div>
-      <a href="#quickstart">5 · Quick Start (flujo completo)</a>
-      <a href="#ejecucion">5b · Cómo se ejecutan las tasks</a>
+      <a href="#quickstart"><span class="n">5</span> Quick Start (flujo completo)</a>
+      <a href="#ejecucion"><span class="n">5b</span> Cómo se ejecutan las tasks</a>
       <div class="group">Referencia</div>
-      <a href="#comandos">6 · Comandos core</a>
-      <a href="#reglas">7 · Reglas por paso</a>
+      <a href="#comandos"><span class="n">6</span> Comandos core</a>
+      <a href="#reglas"><span class="n">7</span> Reglas por paso</a>
       <div class="group">Avanzado</div>
-      <a href="#extensiones">8 · Extensiones</a>
-      <a href="#radu">9 · Lección de Radu</a>
-      <a href="#medicion">10 · Medición (JS/TS)</a>
-      <a href="#presets">11 · Presets y bundles</a>
-      <a href="#tips">12 · Tips y gotchas</a>
-      <a href="#fuentes">Fuentes</a>
+      <a href="#presets"><span class="n">8</span> Presets y bundles</a>
+      <a href="#tips"><span class="n">9</span> Tips y gotchas</a>
+      <a href="#fuentes"><span class="n"></span>Fuentes</a>
     </nav>
-    <button class="theme-btn" id="themeBtn" aria-pressed="false">🌗 Cambiar tema</button>
+    <button class="theme-btn" id="themeBtn" aria-pressed="false">
+      <svg class="ico" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" stroke="currentColor" stroke-width="1.6"/><path d="M8 2.5v11" stroke="currentColor" stroke-width="1.6"/></svg>
+      <span id="themeLabel">Tema: sistema</span>
+    </button>
   </aside>
 
   <main class="content" id="main" tabindex="-1">
     <div class="hero">
-      <h1>Spec-Kit + Claude Code</h1>
-      <p class="lead">Desarrollo guiado por especificaciones (<em>Spec-Driven Development</em>): defines el <strong>qué</strong> y el <strong>porqué</strong>, y Claude Code genera el <strong>cómo</strong> a partir de specs ejecutables, en pasos refinados — no en un solo prompt.</p>
-      <div class="pills">
-        <span class="pill">GitHub Spec-Kit</span>
-        <span class="pill">Claude Code</span>
-        <span class="pill">JS / TS</span>
-        <span class="pill">+ Extensiones</span>
-        <span class="pill">Medición objetiva</span>
-      </div>
+      <div class="kicker load" style="--d:0ms">Guía verificada · specify 0.11.8</div>
+      <h1 class="load" style="--d:70ms">Especifica el <em>qué</em>. Claude construye el cómo.</h1>
+      <p class="lead load" style="--d:150ms">Desarrollo guiado por especificaciones (<em>Spec-Driven Development</em>): defines el <strong>qué</strong> y el <strong>porqué</strong>, y Claude Code genera el <strong>cómo</strong> a partir de specs ejecutables, en pasos refinados — no en un solo prompt.</p>
+      <ol class="pipeline" aria-label="Flujo Spec-Driven Development">
+        <li style="--i:0"><a href="#quickstart">constitution</a></li>
+        <li style="--i:1"><a href="#quickstart">specify</a></li>
+        <li style="--i:2"><a href="#quickstart">clarify</a></li>
+        <li style="--i:3"><a href="#quickstart">plan</a></li>
+        <li style="--i:4"><a href="#quickstart">tasks</a></li>
+        <li style="--i:5"><a href="#quickstart">analyze</a></li>
+        <li style="--i:6"><a href="#quickstart">implement</a></li>
+      </ol>
     </div>
 
     <!-- 1 -->
-    <h2 id="que-es">1 · Qué es Spec-Kit</h2>
+    <h2 id="que-es" class="reveal"><span class="cl">1</span> Qué es Spec-Kit</h2>
     <p><strong>Spec-Kit</strong> es un toolkit open-source de GitHub para <em>Spec-Driven Development (SDD)</em>. Invierte el flujo tradicional: en vez de tratar la spec como andamio desechable, la convierte en <strong>especificación ejecutable</strong>. El agente de IA (Claude Code) implementa directamente a partir de specs detalladas.</p>
     <p>Filosofía central: <strong>intent-driven development</strong>. La especificación define el <em>qué</em> antes que el <em>cómo</em>, con <strong>refinamiento en varios pasos</strong> en lugar de prompts de un solo tiro. Objetivo: dejar de "vibe-codear" cada pieza y obtener outcomes predecibles.</p>
 
     <!-- 2 -->
-    <h2 id="instalacion">2 · Instalación</h2>
+    <h2 id="instalacion" class="reveal"><span class="cl">2</span> Instalación</h2>
     <p>Requisitos: <strong>Python 3.11+</strong>, <strong>Git</strong> y <strong>uv</strong> (o pipx). El CLI se llama <code>specify</code>.</p>
     <pre><code><span class="tok-cmt"># Instalar el CLI specify (usa el último release de GitHub)</span>
 <span class="tok-cmd">uv</span> tool install specify-cli <span class="tok-flag">--from</span> git+https://github.com/github/spec-kit.git</code></pre>
@@ -267,7 +345,7 @@
 <span class="tok-cmd">specify</span> self upgrade <span class="tok-flag">--tag</span> vX.Y.Z   <span class="tok-cmt"># fijar versión concreta</span></code></pre>
 
     <!-- 3 -->
-    <h2 id="init">3 · Inicializar el proyecto para Claude Code</h2>
+    <h2 id="init" class="reveal"><span class="cl">3</span> Inicializar el proyecto para Claude Code</h2>
     <pre><code><span class="tok-cmt"># Proyecto nuevo</span>
 <span class="tok-cmd">specify</span> init mi-proyecto <span class="tok-flag">--integration</span> claude
 <span class="tok-cmd">cd</span> mi-proyecto
@@ -279,7 +357,7 @@
     <div class="callout info"><span class="tag">Nombres de comando: guion, no punto</span><p>Con la integración <strong>Claude Code</strong>, los comandos se invocan con guion: <code>/speckit-specify</code>, <code>/speckit-plan</code>, etc. La forma con punto que ves en docs (<code>speckit.specify</code>) corresponde a otras integraciones (Copilot y similares). Esta guía usa la forma de Claude Code: <strong>guion</strong>.</p></div>
 
     <!-- 4 -->
-    <h2 id="estructura">4 · Estructura generada</h2>
+    <h2 id="estructura" class="reveal"><span class="cl">4</span> Estructura generada</h2>
     <p>Estructura real de <code>specify 0.11.8</code> con integración Claude:</p>
     <pre><code>.claude/
 └── skills/                      <span class="tok-cmt"># comandos como skills de Claude Code</span>
@@ -315,14 +393,14 @@ specs/
     └── research.md</code></pre>
 
     <!-- 5 QUICK START -->
-    <h2 id="quickstart">5 · Quick Start: flujo de trabajo completo <span class="badge">★ lo esencial</span></h2>
-    <p class="lead">Ejemplo end-to-end: construir <strong>"LinkSnip"</strong>, un acortador de URLs con dashboard (stack JS/TS). Cada paso es un slash command dentro de Claude Code, <strong>en este orden</strong>. Incluye los pasos de extensiones (marcados <span class="badge">ext</span>) y la verificación de calidad.</p>
+    <h2 id="quickstart" class="reveal"><span class="cl">5</span> Quick Start: flujo de trabajo completo <span class="badge">★ lo esencial</span></h2>
+    <p class="lead">Ejemplo end-to-end: construir <strong>"LinkSnip"</strong>, un acortador de URLs con dashboard (stack JS/TS). Cada paso es un slash command dentro de Claude Code, <strong>en este orden</strong>.</p>
 
     <div class="callout info"><span class="tag">Cómo leerlo</span><p>Todo lo que empieza por <code>/speckit-</code> se teclea como slash command dentro de Claude Code (no en la terminal). El texto entre comillas es el prompt que escribes junto al comando. Los bloques de terminal (<code>npm</code>, <code>npx</code>…) van en tu shell.</p></div>
 
     <ol class="flow">
       <li>
-        <h4><code>/speckit-constitution</code> ·fija los principios</h4>
+        <h3><code>/speckit-constitution</code> ·fija los principios</h3>
         <p>Establece las reglas que Claude respetará en todo el proyecto. Cuanto más concretas y verificables, menos deriva. Ejemplo de constitution endurecida contra sobre-ingeniería:</p>
         <details class="fold"><summary>Ver la constitution completa</summary>
         <pre><code><span class="tok-cmd">/speckit-constitution</span> Principios de ingeniería para LinkSnip. Son vinculantes
@@ -362,7 +440,7 @@ GOVERNANCE
         <p class="verify">constitution.md recoge estos principios y el agente los cita al planear.</p>
       </li>
       <li>
-        <h4><code>/speckit-specify</code> ·define el QUÉ (sin stack)</h4>
+        <h3><code>/speckit-specify</code> ·define el QUÉ (sin stack)</h3>
         <p>Requisitos y user stories. Describe necesidades de usuario, <strong>no</strong> tecnología.</p>
         <pre><code><span class="tok-cmd">/speckit-specify</span> Una app web donde un usuario pega una URL larga y recibe un
 enlace corto. Puede ver una lista de sus enlaces con el conteo de clics. Los
@@ -370,13 +448,13 @@ enlaces caducan a los 30 días. Página pública de redirección. Sin login en v
         <p class="verify">spec.md describe qué/por qué; cero menciones de framework o base de datos.</p>
       </li>
       <li>
-        <h4><code>/speckit-clarify</code> ·resuelve ambigüedades</h4>
+        <h3><code>/speckit-clarify</code> ·resuelve ambigüedades</h3>
         <p>Antes de planear: cada ambigüedad resuelta aquí es menos rework después, así que <strong>no te lo saltes</strong>.</p>
         <pre><code><span class="tok-cmd">/speckit-clarify</span></code></pre>
         <p class="verify">No quedan marcadores [NEEDS CLARIFICATION] sin resolver en spec.md.</p>
       </li>
       <li>
-        <h4><code>/speckit-plan</code> ·el CÓMO (deja que la IA recomiende el stack)</h4>
+        <h3><code>/speckit-plan</code> ·el CÓMO (deja que la IA recomiende el stack)</h3>
         <p>En vez de dictar tú la tecnología, pide a Claude que <strong>proponga las mejores opciones</strong> para los requisitos y restricciones, con trade-offs y una recomendación por defecto. Tú decides después.</p>
         <pre><code><span class="tok-cmd">/speckit-plan</span> No fijes el stack todavía. Primero, basándote en la spec y la
 constitution, recomienda la mejor arquitectura para LinkSnip bajo estas
@@ -396,26 +474,26 @@ Marca cualquier alternativa que solo aporte flexibilidad especulativa como
         <div class="callout tip" style="margin-top:10px"><span class="tag">Por qué así</span><p>Dejar que la IA proponga y justifique convierte el plan en una decisión informada, no en un capricho del prompt. El gate <code>[RECOMENDADO]</code> / <code>[OVER-ENGINEERING]</code> conecta con la GOVERNANCE de tu constitution: cada pieza debe trazar a un requisito. Si ya tienes el stack decidido, sáltate esto y díctalo — pero entonces pierdes la auditoría de alternativas.</p></div>
       </li>
       <li>
-        <h4><code>/speckit-tasks</code> ·desglose ordenado</h4>
+        <h3><code>/speckit-tasks</code> ·desglose ordenado</h3>
         <p>Genera <code>tasks.md</code> en <strong>fases</strong> (Setup → Foundational → User Stories → Polish), con cada task etiquetada <code>[ID] [P] [US#]</code>. No es una lista plana — cada user story es un incremento entregable. Ver cómo se ejecuta en <a href="#ejecucion">§5b</a>.</p>
         <pre><code><span class="tok-cmd">/speckit-tasks</span></code></pre>
         <p class="verify">tasks.md organizado por fases/stories, con dependencias y marcas [P] correctas.</p>
       </li>
       <li>
-        <h4><code>/speckit-checklist</code> ·checklist de calidad <span class="badge">opcional</span></h4>
+        <h3><code>/speckit-checklist</code> ·checklist de calidad <span class="badge">opcional</span></h3>
         <p>Genera un checklist de validación a medida contra la spec.</p>
         <pre><code><span class="tok-cmd">/speckit-checklist</span> Genera un checklist de aceptación enfocado en seguridad
 de redirección, validación de URLs y caducidad de enlaces.</code></pre>
         <p class="verify">Checklist cubre los riesgos clave de la feature.</p>
       </li>
       <li>
-        <h4><code>/speckit-analyze</code> ·consistencia cruzada</h4>
+        <h3><code>/speckit-analyze</code> ·consistencia cruzada</h3>
         <p>Valida que spec ↔ plan ↔ tasks no se contradigan antes de escribir código.</p>
         <pre><code><span class="tok-cmd">/speckit-analyze</span></code></pre>
         <p class="verify">Cero inconsistencias reportadas entre artefactos.</p>
       </li>
       <li>
-        <h4><code>/speckit-implement</code> ·construir</h4>
+        <h3><code>/speckit-implement</code> ·construir</h3>
         <p><strong>Un solo comando ejecuta TODAS las tasks</strong> de <code>tasks.md</code>, fase a fase y en orden de dependencias (no relanzas por task). Detalle completo del modelo de ejecución en <a href="#ejecucion">§5b</a>. Instala antes el tooling local.</p>
         <pre><code><span class="tok-cmt"># Terminal: tener Node/herramientas listas antes</span>
 <span class="tok-cmd">node</span> <span class="tok-flag">-v</span> <span class="tok-cmt"># confirma toolchain</span></code></pre>
@@ -427,48 +505,17 @@ de redirección, validación de URLs y caducidad de enlaces.</code></pre>
         <p class="verify">La app arranca, los tests pasan; devuelve a Claude cualquier error de runtime para que lo resuelva.</p>
       </li>
       <li>
-        <h4>Verificación post-implementación <span class="badge">ext · verify</span></h4>
-        <p>Comprueba que LinkSnip cumple la spec, no solo que compila. Tras instalar <code>verify</code> (§8.2), su hook <code>after_implement</code> te ofrece lanzarlo; o lo invocas a mano:</p>
-        <pre><code><span class="tok-cmd">/speckit-verify-run</span></code></pre>
-        <p class="verify">Implementación de LinkSnip validada contra <code>spec.md</code>; gaps listados (p. ej. "falta caducidad a 30 días").</p>
-      </li>
-      <li>
-        <h4>Detectar y reconciliar drift <span class="badge">ext · sync</span></h4>
-        <p>Mantén spec ↔ código alineados. <code>sync</code> cubre el bloque Sync <em>y</em> Drift de Radu. Flujo de 3 pasos con tu aprobación:</p>
-        <pre><code><span class="tok-cmd">/speckit-sync-analyze</span>    <span class="tok-cmt"># detecta drift (¿el código de redirección difiere de la spec?)</span>
-<span class="tok-cmd">/speckit-sync-propose</span>    <span class="tok-cmt"># propone cómo reconciliar spec↔código</span>
-<span class="tok-cmd">/speckit-sync-apply</span>      <span class="tok-cmt"># aplica lo que apruebes</span></code></pre>
-        <p class="verify"><code>sync-analyze</code> reporta cero drift, o lo reconcilias con propose→apply.</p>
-      </li>
-      <li>
-        <h4>Gate de documentación <span class="badge">ext · docguard</span></h4>
-        <p>Gate <strong>CDD</strong> (<em>Canonical Documentation</em>: docs canónicas derivadas del código) para dejar LinkSnip <em>delivery-ready</em>. Comandos reales tras instalar <code>docguard</code> (§8.2):</p>
-        <pre><code><span class="tok-cmd">/speckit-docguard-guard</span>     <span class="tok-cmt"># gate de validación de docs</span>
-<span class="tok-cmd">/speckit-docguard-score</span>     <span class="tok-cmt"># madurez CDD 0-100 + roadmap por ROI</span>
-<span class="tok-cmd">/speckit-docguard-generate</span>  <span class="tok-cmt"># docs canónicas desde el código (si faltan)</span></code></pre>
-        <p class="verify">Gate <code>guard</code> en verde; <code>score</code> CDD por encima de tu umbral.</p>
-      </li>
-      <li>
-        <h4>Medición objetiva: validar calidad real (ver §10)</h4>
-        <p>Cierra el loop midiendo el resultado, no fiándote del "parece que funciona".</p>
-        <pre><code><span class="tok-cmd">npx</span> vitest run <span class="tok-flag">--coverage</span>            <span class="tok-cmt"># cobertura ≥ 90% (meta de Radu)</span>
-<span class="tok-cmd">npx</span> eslint . <span class="tok-flag">--max-warnings</span> 0          <span class="tok-cmt"># calidad/estilo</span>
-<span class="tok-cmd">npx</span> plato <span class="tok-flag">-r</span> <span class="tok-flag">-d</span> reports src           <span class="tok-cmt"># mantenibilidad + complejidad</span></code></pre>
-        <p class="verify">Cobertura ≥90%, cero warnings de lint, índice de mantenibilidad aceptable.</p>
-      </li>
-      <li>
-        <h4><code>/speckit-taskstoissues</code> <span class="badge">opcional</span> · tracking en GitHub</h4>
+        <h3><code>/speckit-taskstoissues</code> <span class="badge">opcional</span> · tracking en GitHub</h3>
         <p>Convierte las tareas en issues de GitHub. Necesita la CLI <code>gh</code> instalada y autenticada.</p>
         <pre><code><span class="tok-cmd">/speckit-taskstoissues</span></code></pre>
         <p class="verify">Issues creados en el repo, uno por tarea.</p>
       </li>
     </ol>
 
-    <div class="callout tip"><span class="tag">Todos los comandos de este flujo están verificados</span><p>Los core (<code>/speckit-constitution</code> … <code>-taskstoissues</code>) y los de extensiones (<code>/speckit-verify-run</code>, <code>/speckit-sync-analyze</code>, <code>/speckit-docguard-guard</code>, …) se instalaron y comprobaron en <code>specify 0.11.8</code>. Los de extensiones aparecen tras instalarlas <strong>una vez</strong> (§8.1–8.2) y, gracias a sus hooks, Claude te los ofrece solo en el punto correcto del flujo. Lista los comandos exactos de cualquier extensión con <code>specify extension info &lt;id&gt;</code>.</p></div>
-    <div class="callout info"><span class="tag">Requisito previo de los pasos 9–11</span><p>Antes de usar Verify / Sync / DocGuard, instálalas una sola vez (catálogo aprobado + <code>add</code>). Receta completa copiable en <a href="#extensiones">§8.1 y §8.2</a>.</p></div>
+    <div class="callout tip"><span class="tag">Todos los comandos de este flujo están verificados</span><p>Los comandos core (<code>/speckit-constitution</code> … <code>/speckit-taskstoissues</code>) se instalaron y comprobaron en <code>specify 0.11.8</code>. Se instalan como skills al hacer <code>specify init . --integration claude</code> y están listos desde el primer momento.</p></div>
 
     <!-- 5b -->
-    <h2 id="ejecucion">5b · Cómo se ejecutan las tasks (¿una a una o todas?)</h2>
+    <h2 id="ejecucion" class="reveal"><span class="cl">5b</span> Cómo se ejecutan las tasks (¿una a una o todas?)</h2>
     <p class="lead">Duda típica: "si mi app son 5 tasks, al lanzar la implementación, ¿se ejecutan las 5 o solo la primera?". Respuesta corta, verificada leyendo el skill <code>speckit-implement</code> de <code>specify 0.11.8</code>:</p>
     <div class="callout tip"><span class="tag">Respuesta directa</span><p><strong>Un solo <code>/speckit-implement</code> ejecuta TODAS las tasks pendientes de <code>tasks.md</code> en una pasada.</strong> Con 5 tasks, las hace las 5 — no relanzas el comando por cada una. Internamente es un bucle automático: va fase a fase, en orden de dependencias, marca cada task como <code>[X]</code> al terminar y te reporta el progreso, en vez de obligarte a lanzar la 1ª y luego la 2ª a mano.</p></div>
 
@@ -491,7 +538,7 @@ Phase N: Polish             <span class="tok-cmt"># docs, perf, hardening</span>
     </ul>
 
     <h3>2 · Qué hace <code>/speckit-implement</code> por dentro</h3>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th>Comportamiento</th><th>Detalle</th></tr></thead>
       <tbody>
         <tr><td>Alcance</td><td>Procesa <strong>toda</strong> la <code>tasks.md</code> en una invocación</td></tr>
@@ -502,25 +549,24 @@ Phase N: Polish             <span class="tok-cmt"># docs, perf, hardening</span>
         <tr><td>Errores</td><td><strong>Se detiene</strong> si falla una task no-paralela; en <code>[P]</code> sigue con las OK y reporta las fallidas</td></tr>
         <tr><td>Gate de checklists</td><td>Si hay checklists incompletos, <strong>PARA y te pregunta</strong> si continuar (sí/no)</td></tr>
       </tbody>
-    </table>
+    </table></div>
 
     <h3>3 · Cómo ir poco a poco (control fino / entrega incremental)</h3>
-    <p>Si no quieres soltar las 5 de golpe, tienes tres vías <strong>reales</strong>:</p>
+    <p>Si no quieres soltar las 5 de golpe, tienes dos vías <strong>reales</strong>:</p>
     <ol>
       <li><strong>Filtro por argumento.</strong> El skill acepta una guía/filtro opcional (<code>argument-hint: "implementation guidance or task filter"</code>). Scópalo a una fase o story:
         <pre><code><span class="tok-cmd">/speckit-implement</span> Implementa solo la Phase 3 (User Story 1 / MVP) y
 detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
         Validas, y luego relanzas para la siguiente story.</li>
       <li><strong>MVP-first por diseño.</strong> Como <code>tasks.md</code> ya separa stories independientes, el patrón recomendado es: Setup + Foundational → <strong>US1 → STOP &amp; validar → demo</strong> → US2 → … Cada story añade valor sin romper la anterior.</li>
-      <li><strong>Extensión <code>checkpoint</code>.</strong> Commitea incrementos durante la implementación para no acabar con un commit monolítico (ver §8).</li>
     </ol>
 
     <div class="callout info"><span class="tag">Modelo mental</span><p>1 feature → 1 <code>spec.md</code> → 1 <code>plan.md</code> → 1 <code>tasks.md</code> (N tasks en fases/stories). &nbsp; <strong>1 <code>/speckit-implement</code> = ejecuta todas las pendientes en orden</strong>, no una por comando. &nbsp; ¿Quieres granularidad? Pásale un filtro de fase/story y valida en cada checkpoint.</p></div>
     <div class="callout warn"><span class="tag">Ojo: una feature a la vez</span><p>Este flujo es <strong>por feature</strong>. <code>/speckit-specify</code> crea una carpeta <code>specs/[feature]/</code> nueva (y su rama). Si tu app tiene varias features grandes, repites el ciclo specify→plan→tasks→implement por cada una, no metes todo en una sola spec gigante.</p></div>
 
     <!-- 6 -->
-    <h2 id="comandos">6 · Referencia de comandos core</h2>
-    <table>
+    <h2 id="comandos" class="reveal"><span class="cl">6</span> Referencia de comandos core</h2>
+    <div class="table-wrap"><table>
       <thead><tr><th>Comando</th><th>Cuándo</th><th>Para qué</th></tr></thead>
       <tbody>
         <tr><td><code>/speckit-constitution</code></td><td>1º, una vez</td><td>Principios de gobierno: calidad, testing, UX, performance</td></tr>
@@ -534,10 +580,10 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
         <tr><td><code>/speckit-converge</code></td><td>En código existente</td><td>Evalúa código vs spec/plan/tasks y lista lo que falta</td></tr>
         <tr><td><code>/speckit-taskstoissues</code></td><td>Opcional</td><td>Convierte tareas en issues de GitHub (requiere <code>gh</code>)</td></tr>
       </tbody>
-    </table>
+    </table></div>
 
     <!-- 7 -->
-    <h2 id="reglas">7 · Reglas por paso (lo que separa buen output de malo)</h2>
+    <h2 id="reglas" class="reveal"><span class="cl">7</span> Reglas por paso (lo que separa buen output de malo)</h2>
     <h3>Constitution</h3>
     <p>Define principios <strong>antes</strong> de todo. Luego pide explícitamente a Claude que <em>respete la constitution</em> al tomar decisiones de arquitectura. Es la capa que mantiene coherencia entre features.</p>
     <h3>Specify</h3>
@@ -549,118 +595,8 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
     <h3>Implement</h3>
     <p>Instala las herramientas locales antes (Node, npm, etc.). Tras correr: <strong>prueba la app y devuelve los errores de runtime a Claude</strong> para que los resuelva — es parte del loop, no un extra.</p>
 
-    <!-- 8 -->
-    <h2 id="extensiones">8 · Extensiones <span class="badge">recomendado</span></h2>
-    <p>Las extensiones añaden comandos y hooks sobre los core. <strong>Todo lo de esta sección está ejecutado y verificado en <code>specify 0.11.8</code></strong> — incluida la instalación real de las extensiones de Radu.</p>
-
-    <h3>8.1 · Habilitar instalación desde el catálogo community</h3>
-    <p>Hay dos catálogos por defecto: <code>default</code> (instalable) y <code>community</code> (<strong>solo descubrimiento</strong>). Las extensiones de Radu viven en <code>community</code>, así que un <code>add</code> directo falla con <em>"Not directly installable from 'community'"</em>. La forma limpia y reproducible es <strong>registrar el catálogo community como aprobado</strong> con <code>--install-allowed</code>:</p>
-    <pre><code><span class="tok-cmt"># Registra el catálogo community permitiendo instalación (prioridad alta = 1)</span>
-<span class="tok-cmd">specify</span> extension catalog add \
-  https://raw.githubusercontent.com/github/spec-kit/main/extensions/catalog.community.json \
-  <span class="tok-flag">--name</span> community-install <span class="tok-flag">--install-allowed</span> <span class="tok-flag">--priority</span> 1
-
-<span class="tok-cmt"># Verifica</span>
-<span class="tok-cmd">specify</span> extension catalog list      <span class="tok-cmt"># community-install → Install: install allowed</span></code></pre>
-    <p>Esto escribe <code>.specify/extension-catalogs.yml</code>:</p>
-    <pre><code>catalogs:
-- name: community-install
-  url: https://raw.githubusercontent.com/github/spec-kit/main/extensions/catalog.community.json
-  priority: 1
-  install_allowed: true
-  description: ''</code></pre>
-    <div class="callout warn"><span class="tag">Flags exactos</span><p><code>catalog add</code> exige <code>--name</code> y una URL <strong>HTTPS</strong>. El opuesto de <code>--install-allowed</code> es <code>--no-install-allowed</code> (por defecto). Alternativa sin tocar catálogos: instalar una extensión suelta con <code>specify extension add &lt;id&gt; --from &lt;zip-url-de-un-tag&gt;</code>.</p></div>
-
-    <h3>8.2 · Instalar las extensiones de Radu (ejecutado de verdad)</h3>
-    <p>Con el catálogo aprobado, estos <code>add</code> funcionan. Salida real abreviada (<code>✓ Extension installed successfully!</code>):</p>
-    <pre><code><span class="tok-cmd">specify</span> extension add docguard     <span class="tok-cmt"># DocGuard — CDD Enforcement v0.28.0 · 6 cmds, 3 hooks</span>
-<span class="tok-cmd">specify</span> extension add verify       <span class="tok-cmt"># Verify Extension v1.0.3 · 1 cmd, 1 hook</span>
-<span class="tok-cmd">specify</span> extension add sync         <span class="tok-cmt"># Spec Sync v0.1.0 · 5 cmds, 1 hook (cubre Sync + Drift)</span>
-
-<span class="tok-cmd">specify</span> extension list             <span class="tok-cmt"># confirma las 3 como Enabled</span></code></pre>
-    <div class="callout info"><span class="tag">Radu lista 4, el catálogo tiene 3 instalables</span><p>Las etiquetas de Radu (DocGuard, Verify, Sync, Drift) mapean a <strong>3 extensiones reales</strong>: <code>docguard</code>, <code>verify</code> y <code>sync</code>. <strong>"Drift" no es una extensión aparte</strong>: la detección de drift es justamente lo que hace <code>sync</code> (<code>sync.analyze</code>). Si quieres drift/arquitectura más estricto, añade además <code>architecture-guard</code> o <code>canon</code>. IDs verificados con <code>specify extension search</code>.</p></div>
-
-    <h3>8.3 · Comandos reales que añade cada extensión</h3>
-    <p>Al instalarse, registran <strong>skills</strong> en <code>.claude/skills/</code> con forma de guion (verificado en disco). Estos son los nombres exactos que tecleas en Claude Code:</p>
-    <table>
-      <thead><tr><th>Extensión</th><th>Comando (skill)</th><th>Qué hace</th></tr></thead>
-      <tbody>
-        <tr><td rowspan="6"><code>docguard</code><br><span class="badge">DocGuard</span></td><td><code>/speckit-docguard-guard</code></td><td>Gate de validación de docs (CDD)</td></tr>
-        <tr><td><code>/speckit-docguard-score</code></td><td>Score de madurez CDD 0–100 + roadmap por ROI</td></tr>
-        <tr><td><code>/speckit-docguard-review</code></td><td>Consistencia semántica entre documentos (read-only)</td></tr>
-        <tr><td><code>/speckit-docguard-diagnose</code></td><td>Diagnostica issues + plan de remediación para la IA</td></tr>
-        <tr><td><code>/speckit-docguard-fix</code></td><td>Aplica las correcciones del plan</td></tr>
-        <tr><td><code>/speckit-docguard-generate</code></td><td>Reingeniería: genera docs canónicas desde el código</td></tr>
-        <tr><td><code>verify</code><br><span class="badge">Verify</span></td><td><code>/speckit-verify-run</code></td><td>Valida que la implementación cumple los artefactos de spec</td></tr>
-        <tr><td rowspan="5"><code>sync</code><br><span class="badge">Spec Sync</span></td><td><code>/speckit-sync-analyze</code></td><td>Analiza drift entre specs e implementación</td></tr>
-        <tr><td><code>/speckit-sync-propose</code></td><td>Propone resoluciones para el drift detectado</td></tr>
-        <tr><td><code>/speckit-sync-apply</code></td><td>Aplica las resoluciones aprobadas (con tu OK)</td></tr>
-        <tr><td><code>/speckit-sync-conflicts</code></td><td>Detecta conflictos entre specs</td></tr>
-        <tr><td><code>/speckit-sync-backfill</code></td><td>Genera spec a partir de código sin especificar</td></tr>
-      </tbody>
-    </table>
-
-    <h3>8.4 · Se cablean solas al flujo (hooks)</h3>
-    <p>No tienes que acordarte de lanzarlas: al instalarse registran <strong>hooks</strong> en <code>.specify/extensions.yml</code> que se disparan en puntos del flujo (opcionales, te preguntan antes). Cableado real instalado:</p>
-    <table>
-      <thead><tr><th>Punto del flujo</th><th>Dispara</th><th>Prompt</th></tr></thead>
-      <tbody>
-        <tr><td><code>before_tasks</code></td><td><code>docguard.review</code></td><td>"¿Revisar consistencia de docs antes de generar tasks?"</td></tr>
-        <tr><td rowspan="3"><code>after_implement</code></td><td><code>docguard.guard</code></td><td>"¿Ejecutar DocGuard tras implementar?"</td></tr>
-        <tr><td><code>verify.run</code></td><td>"¿Validar implementación contra la spec?"</td></tr>
-        <tr><td><code>sync.analyze</code></td><td>"¿Comprobar drift tras implementar?"</td></tr>
-      </tbody>
-    </table>
-    <p>Con <code>settings.auto_execute_hooks: true</code> (por defecto), tras <code>/speckit-implement</code> Claude te ofrecerá ejecutar los tres gates. Son <code>optional: true</code> → puedes aceptar o saltarlos. Para desactivar uno sin desinstalar: <code>specify extension disable &lt;id&gt;</code>.</p>
-    <div class="callout danger"><span class="tag">Seguridad</span><p>Instalar una extensión registra y ejecuta código de terceros en tu proyecto. Instala solo de fuentes que confíes, prefiere catálogos <code>install_allowed</code> revisados, y si usas <code>--from</code> fija un <strong>tag/release</strong> (no <code>main</code>) y revisa el ZIP antes. En esta guía se instalaron <code>docguard</code>, <code>verify</code> y <code>sync</code> desde el catálogo community oficial de spec-kit.</p></div>
-
-    <!-- 9 -->
-    <h2 id="radu">9 · Lección de Radu: extensiones ganan</h2>
-    <p>Radu Vunvulea comparó <strong>Spec-Kit base</strong> vs <strong>Spec-Kit + extensiones</strong> (y BMAD) dando <em>el mismo prompt idéntico</em> a los tres para construir una app (CloudLatency, monitor de latencia de regiones cloud). Resultado:</p>
-    <table>
-      <thead><tr><th>Métrica</th><th>Base</th><th>+ Extensiones</th></tr></thead>
-      <tbody>
-        <tr><td>Score ponderado global</td><td>~7.1 / 10</td><td><strong>~8.9 / 10</strong></td></tr>
-        <tr><td>Complejidad cognitiva</td><td>referencia</td><td><strong>~50% menos</strong></td></tr>
-        <tr><td>Categorías ganadas (de 8)</td><td>5</td><td>3 (docs, arquitectura, madurez)</td></tr>
-      </tbody>
-    </table>
-    <p>Las extensiones produjeron output más maduro y <em>delivery-ready</em>, destacando en <strong>documentación, arquitectura y madurez de proyecto</strong>. Hallazgo lateral: la arquitectura híbrida de BMAD requería ~59% menos esfuerzo cognitivo (<strong>Halstead</strong>: complejidad estimada por volumen de operadores y operandos), una dimensión que los linters tradicionales no capturan.</p>
-    <div class="callout tip"><span class="tag">Recomendaciones de Radu</span><p>1) Usa extensiones, no solo base — output más maduro. &nbsp; 2) Fija objetivo de cobertura de tests <strong>≥90%</strong>. &nbsp; 3) Aprovecha la generación de docs canónicas de DocGuard para madurez operacional. &nbsp; 4) Mide objetivamente (§10): "éxito = código completo, mantenible y listo para entregar".</p></div>
-
-    <!-- 10 -->
-    <h2 id="medicion">10 · Medición objetiva de calidad (adaptada a JS/TS)</h2>
-    <p>Radu valida el resultado con métricas, no con impresiones. Su stack original es Python; aquí está el <strong>equivalente para JS/TS</strong>. Corre esto tras <code>/speckit-implement</code> para cerrar el loop.</p>
-    <table>
-      <thead><tr><th>Dimensión</th><th>Python (Radu)</th><th>Equivalente JS/TS</th></tr></thead>
-      <tbody>
-        <tr><td>Calidad / estilo</td><td>pylint, flake8</td><td><code>eslint</code> (+ <code>@typescript-eslint</code>)</td></tr>
-        <tr><td>Complejidad ciclomática</td><td>radon cc</td><td><code>eslint</code> rule <code>complexity</code> / <code>plato</code></td></tr>
-        <tr><td>Complejidad cognitiva</td><td>radon hal (Halstead)</td><td><code>eslint-plugin-sonarjs</code> (<code>cognitive-complexity</code>)</td></tr>
-        <tr><td>Mantenibilidad</td><td>radon mi, lizard</td><td><code>plato</code> (Maintainability Index)</td></tr>
-        <tr><td>Cobertura de tests</td><td>pytest --cov</td><td><code>vitest --coverage</code> / <code>jest --coverage</code></td></tr>
-        <tr><td>Documentación</td><td>interrogate</td><td><code>eslint-plugin-jsdoc</code> (require-jsdoc)</td></tr>
-        <tr><td>Seguridad (SAST)</td><td>bandit</td><td><code>npm audit</code>, <code>eslint-plugin-security</code>, <code>semgrep</code></td></tr>
-        <tr><td>Código muerto</td><td>vulture</td><td><code>knip</code> / <code>ts-prune</code></td></tr>
-      </tbody>
-    </table>
-    <h3>Comandos listos para correr</h3>
-    <pre><code><span class="tok-cmt"># Instalar herramientas de medición (una vez)</span>
-<span class="tok-cmd">npm</span> i <span class="tok-flag">-D</span> eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin \
-  eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-jsdoc \
-  plato knip vitest @vitest/coverage-v8
-
-<span class="tok-cmt"># Medir</span>
-<span class="tok-cmd">npx</span> eslint . <span class="tok-flag">--max-warnings</span> 0        <span class="tok-cmt"># calidad, estilo, complejidad cognitiva (sonarjs)</span>
-<span class="tok-cmd">npx</span> plato <span class="tok-flag">-r</span> <span class="tok-flag">-d</span> reports src         <span class="tok-cmt"># mantenibilidad + complejidad → reports/index.html</span>
-<span class="tok-cmd">npx</span> vitest run <span class="tok-flag">--coverage</span>          <span class="tok-cmt"># cobertura (meta ≥ 90%)</span>
-<span class="tok-cmd">npx</span> knip                          <span class="tok-cmt"># exports/deps/archivos muertos</span>
-<span class="tok-cmd">npm</span> audit <span class="tok-flag">--audit-level</span> high       <span class="tok-cmt"># vulnerabilidades de dependencias</span>
-<span class="tok-cmd">npx</span> semgrep <span class="tok-flag">--config</span> auto           <span class="tok-cmt"># SAST (opcional, requiere semgrep instalado)</span></code></pre>
-    <div class="callout tip"><span class="tag">Cierra el loop</span><p>Mete estos comandos en tu CI o en un script <code>npm run quality</code>. Si una métrica cae bajo el umbral, devuelve el reporte a Claude Code y pídele que lo arregle — mismo loop que con los errores de runtime.</p></div>
-
     <!-- 11 -->
-    <h2 id="presets">11 · Extensiones, presets y bundles (mecánica)</h2>
+    <h2 id="presets" class="reveal"><span class="cl">8</span> Presets, bundles y workflows (mecánica)</h2>
     <ul>
       <li><strong>Extensiones</strong>: añaden capacidades nuevas (comandos + hooks). CLI: <code>specify extension</code>.</li>
       <li><strong>Presets</strong>: modifican el comportamiento de workflows existentes. CLI: <code>specify preset</code>.</li>
@@ -678,7 +614,7 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
     <div class="callout info"><span class="tag">Verificado</span><p>Los grupos de comandos <code>extension</code>, <code>preset</code>, <code>bundle</code>, <code>workflow</code>, <code>integration</code> existen en <code>specify 0.11.8</code> (vistos en <code>specify --help</code>). Para los subcomandos exactos de <code>preset</code>/<code>bundle</code>, corre su <code>--help</code> en tu proyecto.</p></div>
 
     <!-- 12 -->
-    <h2 id="tips">12 · Tips y gotchas</h2>
+    <h2 id="tips" class="reveal"><span class="cl">9</span> Tips y gotchas</h2>
     <ul>
       <li><strong>El orden importa.</strong> constitution → specify → clarify → plan → tasks → analyze → implement. Saltarte clarify o analyze es donde aparece el rework.</li>
       <li><strong>Separa el "qué" del "cómo".</strong> Stack solo en <code>/speckit-plan</code>, nunca en <code>/speckit-specify</code>.</li>
@@ -686,20 +622,18 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
       <li><strong>Devuelve errores.</strong> Tras implementar, corre la app, copia errores de runtime al chat y deja que Claude itere.</li>
       <li><strong>Prepara el toolchain.</strong> Node/npm/herramientas instaladas antes de <code>/speckit-implement</code>.</li>
       <li><strong>Versiona <code>.specify/</code> y <code>specs/</code>.</strong> Son artefactos de primera clase, no temporales.</li>
-      <li><strong>Nombres de comando según integración.</strong> Claude Code los instala como <em>skills</em> con guion: <code>/speckit-plan</code>. Otras integraciones (Copilot, etc.) usan la forma con punto <code>/speckit.plan</code>. Los de extensiones, confírmalos con <code>specify extension info &lt;ext&gt;</code> tras instalar.</li>
+      <li><strong>Nombres de comando según integración.</strong> Claude Code los instala como <em>skills</em> con guion: <code>/speckit-plan</code>. Otras integraciones (Copilot, etc.) usan la forma con punto <code>/speckit.plan</code>.</li>
       <li><strong>Mide siempre.</strong> "Parece que funciona" no es señal; cobertura ≥90% y lint en cero sí lo son.</li>
     </ul>
 
-    <h2 id="fuentes">Fuentes</h2>
+    <h2 id="fuentes" class="reveal">Fuentes</h2>
     <ul>
       <li><a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">github.com/github/spec-kit</a> — repo y documentación oficial</li>
       <li><a href="https://github.com/github/spec-kit/releases" target="_blank" rel="noopener">Releases</a> — tags de versión</li>
-      <li><a href="https://vunvulear.medium.com/i-compared-spec-kit-with-and-without-extensions-here-is-what-i-found-d3fcc2759f08" target="_blank" rel="noopener">Radu Vunvulea — "I compared Spec Kit with and without extensions"</a></li>
-      <li><a href="https://github.com/vunvulear/speckit-assessment" target="_blank" rel="noopener">github.com/vunvulear/speckit-assessment</a> — metodología, extensiones y scoring completos</li>
     </ul>
 
     <footer>
-      <p>Guía generada para uso con Claude Code · Spec-Driven Development. Los comandos core están verificados contra la doc oficial; los nombres de slash commands de extensiones deben confirmarse al instalarlas.</p>
+      <p>Guía generada para uso con Claude Code · Spec-Driven Development. Los comandos core están verificados contra la documentación oficial de spec-kit.</p>
     </footer>
   </main>
 </div>
@@ -712,18 +646,39 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
 (function(){
   "use strict";
 
-  // ---- Theme toggle (persistente) ----
+  // ---- Theme: sigue prefers-color-scheme; toggle persiste un override ----
   var root = document.documentElement;
   var themeBtn = document.getElementById("themeBtn");
-  var saved = localStorage.getItem("speckit-theme");
-  if(saved){ root.setAttribute("data-theme", saved); }
-  themeBtn.setAttribute("aria-pressed", root.getAttribute("data-theme") === "light" ? "true" : "false");
+  var themeLabel = document.getElementById("themeLabel");
+  var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+  function effectiveTheme(){
+    var forced = root.getAttribute("data-theme");
+    if(forced){ return forced; }
+    return (mq && mq.matches) ? "dark" : "light";
+  }
+  function syncThemeBtn(){
+    var forced = root.getAttribute("data-theme");
+    var eff = effectiveTheme();
+    themeBtn.setAttribute("aria-pressed", eff === "light" ? "true" : "false");
+    if(themeLabel){
+      themeLabel.textContent = forced
+        ? (eff === "dark" ? "Tema: oscuro" : "Tema: claro")
+        : "Tema: sistema";
+    }
+  }
   themeBtn.addEventListener("click", function(){
-    var cur = root.getAttribute("data-theme") === "light" ? "" : "light";
-    if(cur){ root.setAttribute("data-theme", cur); } else { root.removeAttribute("data-theme"); }
-    localStorage.setItem("speckit-theme", cur);
-    themeBtn.setAttribute("aria-pressed", cur === "light" ? "true" : "false");
+    var next = effectiveTheme() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("speckit-theme", next); } catch(e){}
+    syncThemeBtn();
   });
+  if(mq){
+    var onSys = function(){ if(!root.getAttribute("data-theme")){ syncThemeBtn(); } };
+    if(mq.addEventListener){ mq.addEventListener("change", onSys); }
+    else if(mq.addListener){ mq.addListener(onSys); }
+  }
+  syncThemeBtn();
 
   // ---- Mobile sidebar ----
   var sidebar = document.getElementById("sidebar");
@@ -747,7 +702,7 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
   });
   // cerrar al pulsar un enlace en móvil
   sidebar.addEventListener("click", function(e){
-    if(e.target.tagName === "A" && window.innerWidth <= 900){ setMenu(false); }
+    if(e.target.tagName === "A" && window.innerWidth <= 960){ setMenu(false); }
   });
 
   // ---- Copy buttons en cada <pre> ----
@@ -904,6 +859,20 @@ detente en el checkpoint. No toques US2 ni US3 todavía.</code></pre>
   }, { rootMargin: "-10% 0px -80% 0px", threshold: 0 });
 
   sections.forEach(function(s){ observer.observe(s); });
+
+  // ---- Reveal de secciones (mejora un default ya visible; se apaga con reduce-motion) ----
+  var reveals = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduce || !("IntersectionObserver" in window)){
+    reveals.forEach(function(el){ el.classList.add("in"); });
+  } else {
+    var revObs = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add("in"); revObs.unobserve(en.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
+    reveals.forEach(function(el){ revObs.observe(el); });
+  }
 
   // ---- Back-to-top ----
   var toTop = document.getElementById("toTop");
